@@ -6,8 +6,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Admin />} />
+        {/* 管理画面 */}
+        <Route path="/admin" element={<Admin />} />
+
+        {/* 保護者画面 */}
         <Route path="/parent/:id" element={<Parent />} />
+
+        {/* デフォルト */}
+        <Route path="*" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   );

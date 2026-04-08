@@ -1,7 +1,24 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
+
+//==============================
+// JST日付変換
+//==============================
+const getJSTDate = (date) => {
+  const d = new Date(date);
+  return new Date(d.getTime() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+};
 
 function Parent() {
   const { id } = useParams();
@@ -10,7 +27,9 @@ function Parent() {
   const [remaining, setRemaining] = useState(null);
   const [todaySchedule, setTodaySchedule] = useState(null);
 
+  //==============================
   // 生徒取得
+  //==============================
   useEffect(() => {
     const fetchStudent = async () => {
       const docRef = doc(db, "students", id);
@@ -24,7 +43,9 @@ function Parent() {
     fetchStudent();
   }, [id]);
 
-  // チケット取得
+  //==============================
+  // 回数券取得
+  //==============================
   useEffect(() => {
     const fetchTicket = async () => {
       const q = query(
@@ -36,27 +57,29 @@ function Parent() {
 
       if (!snapshot.empty) {
         const data = snapshot.docs[0].data();
-        const remain = (data.total || 0) - (data.used || 0);
-        setRemaining(remain);
+        setRemaining((data.total || 0) - (data.used || 0));
+      } else {
+        setRemaining(0);
       }
     };
 
     fetchTicket();
   }, [id]);
 
-  // 今日のスケジュール
+  //==============================
+  // 今日のスケジュール取得（JST対応）
+  //==============================
   useEffect(() => {
     const fetchSchedule = async () => {
-      const querySnapshot = await getDocs(collection(db, "schedules"));
+      const snapshot = await getDocs(collection(db, "schedules"));
 
-      const schedules = querySnapshot.docs.map(doc => doc.data());
+      const schedules = snapshot.docs.map(doc => doc.data());
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getJSTDate(new Date());
 
       const todayItem = schedules.find(item => {
         if (!item.date) return false;
-
-        const itemDate = item.date.toDate().toISOString().slice(0, 10);
+        const itemDate = getJSTDate(item.date.toDate());
         return itemDate === today;
       });
 
@@ -66,30 +89,58 @@ function Parent() {
     fetchSchedule();
   }, []);
 
+  //==============================
+  // UI
+  //==============================
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>{student ? student.name : "読み込み中..."}</h1>
+    <div style={{ padding: "20px" }}>
 
-      <p style={{ fontSize: "20px" }}>
-        残り回数：{remaining !== null ? `${remaining}回` : "読み込み中..."}
+      {/* 名前 */}
+      <h1 style={{
+        textAlign: "center",
+        color: "#fff"
+      }}>
+        {student ? student.name : "読み込み中..."}
+      </h1>
+
+      {/* 回数券 */}
+      <p style={{
+        fontSize: "24px",
+        textAlign: "center",
+        margin: "20px 0",
+        color: "#fff"
+      }}>
+        {remaining !== null
+          ? `回数券：残り${remaining}枚`
+          : "読み込み中..."}
       </p>
 
-      <div
-        style={{
-          marginTop: "20px",
-          fontSize: "20px",
-          fontWeight: "bold",
-          color:
-            todaySchedule
-              ? (todaySchedule.status === "scheduled" ? "green" : "red")
-              : "gray"
-        }}
-      >
+      {/* 日付 */}
+      <div style={{
+        textAlign: "center",
+        fontSize: "18px",
+        color: "#ccc"
+      }}>
+        {todaySchedule && todaySchedule.date.toDate().toLocaleDateString()}
+      </div>
+
+      {/* 状態 */}
+      <div style={{
+        marginTop: "10px",
+        fontSize: "26px",
+        fontWeight: "bold",
+        textAlign: "center",
+        color:
+          todaySchedule
+            ? (todaySchedule.status === "scheduled" ? "#00e676" : "#ff1744")
+            : "#888"
+      }}>
         本日の練習：
         {todaySchedule
-          ? (todaySchedule.status === "scheduled" ? "開催" : "中止")
+          ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
           : "なし"}
       </div>
+
     </div>
   );
 }
