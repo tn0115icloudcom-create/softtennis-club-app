@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import {
   collection,
   getDocs,
@@ -11,6 +11,7 @@ import {
   deleteDoc,
   doc
 } from "firebase/firestore";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 
 //==============================
 // JST日付変換
@@ -53,11 +54,14 @@ function App() {
 
   const navigate = useNavigate();
 
-  const [students, setStudents] = useState([]);
+  //==============================
+  // 認証ガード用状態
+  //==============================
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [schedules, setSchedules] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [remaining, setRemaining] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -65,18 +69,23 @@ function App() {
   const [newScheduleTime, setNewScheduleTime] = useState("18:00");
 
   //==============================
-  // 生徒取得
+  // 認証チェック（ログイン必須）
   //==============================
   useEffect(() => {
-    const fetchStudents = async () => {
-      const snapshot = await getDocs(collection(db, "students"));
-      setStudents(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-    };
-    fetchStudents();
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // ログイン中
+        setIsAuthenticated(true);
+        setIsLoading(false);
+      } else {
+        // 未ログイン
+        setIsLoading(false);
+        navigate("/login", { replace: true });
+      }
+    });
+
+    return unsubscribe;
+  }, [navigate]);
 
   //==============================
   // スケジュール取得（関数化）
@@ -110,94 +119,9 @@ function App() {
     setTodaySchedule(todayItem || null);
   }, [schedules]);
 
-  //==============================
-  // 回数券取得
-  //==============================
-  useEffect(() => {
-    const fetchTicket = async () => {
-      if (!selectedStudent) return;
-
-      const q = query(
-        collection(db, "tickets"),
-        where("student_id", "==", selectedStudent.id)
-      );
-
-      const snapshot = await getDocs(q);
-
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
-        setRemaining((data.total || 0) - (data.used || 0));
-      } else {
-        setRemaining(0);
-      }
-    };
-
-    fetchTicket();
-  }, [selectedStudent]);
-
-  //==============================
-  // 参加処理
-  //==============================
-  const handleAttend = async () => {
-
-    if (!todaySchedule) {
-      alert("本日は練習がありません");
-      return;
-    }
-
-    if (todaySchedule.status === "cancelled") {
-      alert("本日は中止です");
-      return;
-    }
-
-    if (!window.confirm("参加登録しますか？")) return;
-
-    const today = getJSTDate(new Date());
-
-    const q = query(
-      collection(db, "attendance"),
-      where("student_id", "==", selectedStudent.id)
-    );
-
-    const snapshot = await getDocs(q);
-
-    const already = snapshot.docs.some(doc => {
-      const d = getJSTDate(doc.data().date.toDate());
-      return d === today;
-    });
-
-    if (already) {
-      alert("本日はすでに参加済みです");
-      return;
-    }
-
-    if (remaining <= 0) {
-      alert("回数券がありません");
-      return;
-    }
-
-    await addDoc(collection(db, "attendance"), {
-      student_id: selectedStudent.id,
-      date: new Date(),
-      status: "present"
-    });
-
-    const ticketQuery = query(
-      collection(db, "tickets"),
-      where("student_id", "==", selectedStudent.id)
-    );
-
-    const ticketSnap = await getDocs(ticketQuery);
-
-    if (!ticketSnap.empty) {
-      const t = ticketSnap.docs[0];
-      await updateDoc(doc(db, "tickets", t.id), {
-        used: (t.data().used || 0) + 1
-      });
-    }
-
-    setRemaining(prev => prev - 1);
-    alert("参加登録しました");
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login", { replace: true });
   };
 
   //==============================
@@ -257,10 +181,35 @@ function App() {
   };
 
   //==============================
+  // ローディング中の表示
+  //==============================
+  if (isLoading) {
+    return (
+      <div style={{
+        padding: "20px",
+        background: "#121212",
+        color: "#fff",
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+        <p style={{ fontSize: "18px" }}>読み込み中...</p>
+      </div>
+    );
+  }
+
+  //==============================
+  // 認証チェック：ログインしていない場合は何も表示しない
+  //==============================
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  //==============================
   // 一覧画面
   //==============================
-  if (!selectedStudent) {
-    return (
+  return (
       <div style={{
         padding: "20px",
         background: "#121212",
@@ -272,6 +221,7 @@ function App() {
           padding: "12px 16px",
           borderBottom: "1px solid #333",
         }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
           <h1 style={{
             color: "#fff",
             fontSize: "clamp(16px, 5vw, 25px)", // ←自動調整
@@ -279,75 +229,34 @@ function App() {
           }}>
             高橋キッズソフトテニスクラブ
           </h1>
-        </div>
-          
-        <button
-          onClick={() => navigate("/students")}
-          style={{
-            padding: "6px 10px",
-            background: "#444",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px"
-          }}
-        >
-          生徒一覧
-        </button>
-
-        {viewMode === "students" && (
-          <div>
-
-            {/* ヘッダー */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "10px"
-            }}>
-              <h2 style={{ color: "#fff" }}>生徒一覧</h2>
-
-              <button
-                onClick={() => setViewMode("home")}
-                style={{
-                  padding: "6px 12px",
-                  background: "#444",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px"
-                }}
-              >
-                戻る
-              </button>
-            </div>
-
-            {/* 生徒リスト */}
-            {students.map(s => (
-              <div
-                key={s.id}
-                onClick={() => setSelectedStudent(s)}
-                style={{
-                  padding: "18px",
-                  margin: "12px 0",
-                  background: "#1e1e1e",
-                  border: "1px solid #333",
-                  borderRadius: "12px",
-                  fontSize: "20px",
-                  textAlign: "center",
-                  color: "#fff",
-                  fontWeight: "bold"
-                }}
-              >
-                {s.name}
-              </div>
-            ))}
-
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              onClick={() => navigate("/students")}
+              style={{
+                padding: "6px 10px",
+                background: "#444",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px"
+              }}
+            >
+              生徒一覧
+            </button>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: "6px 10px",
+                background: "#d32f2f",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px"
+              }}
+            >
+              ログアウト
+            </button>
           </div>
-        )}
-
-        {/* ==============================
-        今日の練習カード
-        ============================== */}
-        <h2 style={{ color: "#fff" }}>本日の練習</h2>
+        </div>
+      </div>
         <div style={{
           marginTop: "20px",
           padding: "20px",
@@ -679,59 +588,6 @@ function App() {
 
       </div>
     );
-  }
-
-  //==============================
-  // 🔽 詳細画面
-  //==============================
-  return (
-    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
-
-      <h1 style={{ textAlign: "center", color: "#fff" }}>
-        {selectedStudent.name}
-      </h1>
-
-      <p style={{
-        fontSize: "24px",
-        textAlign: "center",
-        margin: "20px 0",
-        color: "#fff"
-      }}>
-        回数券：残り{remaining}枚
-      </p>
-
-      {/* 参加ボタン（主操作） */}
-      <button
-        onClick={handleAttend}
-        disabled={remaining <= 0}
-        style={{
-          padding: "20px",
-          fontSize: "20px",
-          width: "100%",
-          background: remaining <= 0 ? "#555" : "#ff6d00",
-          borderRadius: "12px",
-          color: "#fff",
-          border: "none"
-        }}
-      >
-        参加
-      </button>
-
-      {/* 戻るボタン（副操作） */}
-      <div style={{ marginTop: "10px", textAlign: "right" }}>
-        <button
-          onClick={() => setSelectedStudent(null)}
-          style={{
-            padding: "8px 30px",
-            fontSize: "14px"
-          }}
-        >
-          戻る
-        </button>
-      </div>
-
-    </div>
-  );
 }
 
 export default App;
