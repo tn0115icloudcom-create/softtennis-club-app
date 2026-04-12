@@ -93,7 +93,7 @@ function Parent() {
   // UI
   //==============================
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
 
       {/* 名前 */}
       <h1 style={{

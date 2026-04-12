@@ -8,6 +8,7 @@ import {
   query,
   where,
   updateDoc,
+  deleteDoc,
   doc
 } from "firebase/firestore";
 
@@ -59,6 +60,9 @@ function App() {
   const [remaining, setRemaining] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [newScheduleTitle, setNewScheduleTitle] = useState("");
+  const [newScheduleTime, setNewScheduleTime] = useState("18:00");
 
   //==============================
   // 生徒取得
@@ -75,16 +79,17 @@ function App() {
   }, []);
 
   //==============================
-  // スケジュール取得
+  // スケジュール取得（関数化）
   //==============================
+  const fetchSchedules = async () => {
+    const snapshot = await getDocs(collection(db, "schedules"));
+    setSchedules(snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })));
+  };
+
   useEffect(() => {
-    const fetchSchedules = async () => {
-      const snapshot = await getDocs(collection(db, "schedules"));
-      setSchedules(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-    };
     fetchSchedules();
   }, []);
 
@@ -205,28 +210,89 @@ function App() {
   };
 
   //==============================
+  // スケジュール追加
+  //==============================
+  const handleAddSchedule = async () => {
+    if (!newScheduleTitle || !selectedDate || !newScheduleTime) {
+      alert("タイトル・日付・開始時間を入力してください");
+      return;
+    }
+
+    const date = new Date(selectedDate);
+    const [hours, minutes] = newScheduleTime.split(":").map(Number);
+    date.setHours(hours, minutes, 0, 0);
+
+    await addDoc(collection(db, "schedules"), {
+      title: newScheduleTitle,
+      date,
+      start_time: newScheduleTime,
+      status: "scheduled"
+    });
+
+    setNewScheduleTitle("");
+    setSelectedDate(null);
+    setNewScheduleTime("18:00");
+    fetchSchedules();
+    alert("スケジュールを追加しました");
+  };
+
+  //==============================
+  // スケジュール削除
+  //==============================
+  const handleDeleteSchedule = async (scheduleId) => {
+    if (!window.confirm("本当に削除しますか？")) return;
+    await deleteDoc(doc(db, "schedules", scheduleId));
+    fetchSchedules();
+  };
+
+  //==============================
+  // ステータス変更（中止/再開）
+  //==============================
+  const handleToggleStatus = async (scheduleId, currentStatus) => {
+    const newStatus = currentStatus === "scheduled" ? "cancelled" : "scheduled";
+    await updateDoc(doc(db, "schedules", scheduleId), {
+      status: newStatus
+    });
+    fetchSchedules();
+  };
+
+  //==============================
   // 一覧画面
   //==============================
   if (!selectedStudent) {
     return (
-      <div style={{ padding: "20px" }}>
+      <div style={{
+        padding: "20px",
+        background: "#121212",
+        minHeight: "100vh"
+      }}>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ color: "#fff" }}>高橋キッズソフトテニスクラブ</h1>
-
-          <button
-            onClick={() => navigate("/students")}
-            style={{
-              padding: "8px 12px",
-              background: "#444",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px"
-            }}
-          >
-            生徒一覧
-          </button>
+        <div style={{
+          background: "#1e1e1e",
+          padding: "12px 16px",
+          borderBottom: "1px solid #333",
+        }}>
+          <h1 style={{
+            color: "#fff",
+            fontSize: "clamp(16px, 5vw, 25px)", // ←自動調整
+            margin: 0
+          }}>
+            高橋キッズソフトテニスクラブ
+          </h1>
         </div>
+          
+        <button
+          onClick={() => navigate("/students")}
+          style={{
+            padding: "6px 10px",
+            background: "#444",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px"
+          }}
+        >
+          生徒一覧
+        </button>
 
         {viewMode === "students" && (
           <div>
@@ -262,11 +328,12 @@ function App() {
                 style={{
                   padding: "18px",
                   margin: "12px 0",
-                  background: "#fff",
+                  background: "#1e1e1e",
+                  border: "1px solid #333",
                   borderRadius: "12px",
                   fontSize: "20px",
                   textAlign: "center",
-                  color: "#000",
+                  color: "#fff",
                   fontWeight: "bold"
                 }}
               >
@@ -285,8 +352,8 @@ function App() {
           marginTop: "20px",
           padding: "20px",
           borderRadius: "12px",
-          border: "1px solid #1f1d1e",
-          background: "#fcf9f9",
+          border: "1px solid #333",
+          background: "#1e1e1e",
           textAlign: "center"
         }}>
 
@@ -294,7 +361,7 @@ function App() {
           <div style={{
             fontSize: "20px",
             fontWeight: "bold",
-            color: "#0a0a0a",
+            color: "#fff",
             marginBottom: "10px"
           }}>
             {todaySchedule &&
@@ -439,6 +506,7 @@ function App() {
                   const dateStr = getJSTDate(date);
                   const todayStr = getJSTDate(new Date());
                   const isToday = dateStr === todayStr;
+                  const isSelected = selectedDate && getJSTDate(selectedDate) === dateStr;
 
                   const schedule = schedules.find(s => {
                     if (!s.date) return false;
@@ -447,17 +515,19 @@ function App() {
 
                   return (
                     <div
-                      key={date}
+                      key={date.toISOString()}
+                      onClick={() => setSelectedDate(date)}
                       style={{
                         padding: "10px",
                         borderRadius: "8px",
-                        border: isToday ? "3px solid #f305e7" : "none",
+                        border: isSelected ? "3px solid #ffb300" : (isToday ? "3px solid #f305e7" : "none"),
                         textAlign: "center",
                         background:
                           schedule
                             ? (schedule.status === "scheduled" ? "#69f0ae" : "#ff8a80")
                             : "#222",
-                        color: "#fff"
+                        color: "#fff",
+                        cursor: "pointer"
                       }}
                     >
                       {date.getDate()}
@@ -469,6 +539,71 @@ function App() {
             </div>
           );
         })()}
+
+        {/* ==============================
+        スケジュール追加フォーム
+        ============================== */}
+        {viewMode === "calendar" && (
+          <div style={{
+            marginTop: "20px",
+            padding: "18px",
+            borderRadius: "12px",
+            border: "1px solid #333",
+            background: "#1e1e1e"
+          }}>
+            <h3 style={{ color: "#fff", marginBottom: "12px" }}>スケジュール追加</h3>
+            <div style={{ display: "grid", gap: "10px" }}>
+              <input
+                type="text"
+                placeholder="タイトル（例：練習）"
+                value={newScheduleTitle}
+                onChange={(e) => setNewScheduleTitle(e.target.value)}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff"
+                }}
+              />
+              <div style={{
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid #333",
+                background: "#121212",
+                color: "#fff"
+              }}>
+                選択日付：{selectedDate ? selectedDate.toLocaleDateString() : "カレンダーから選択"}
+              </div>
+              <input
+                type="time"
+                value={newScheduleTime}
+                onChange={(e) => setNewScheduleTime(e.target.value)}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff"
+                }}
+              />
+              <button
+                onClick={handleAddSchedule}
+                style={{
+                  padding: "14px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#4CAF50",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                追加
+              </button>
+            </div>
+          </div>
+        )}
 
        {/* ==============================
          スケジュール一覧
@@ -493,19 +628,52 @@ function App() {
             style={{
               padding: "14px",
               margin: "12px 0",
-              background: item.status === "cancelled" ? "#ffcdd2" : "#fff",
+              background: item.status === "cancelled" ? "#8b0000" : "#2e7d32",
+              border: "1px solid #333",
               borderRadius: "10px",
-              color: "#000",
+              color: "#fff",
               fontWeight: "bold"
             }}
           >
-            {item.date.toDate().toLocaleDateString()}（{
-              ["日","月","火","水","木","金","土"][item.date.toDate().getDay()]
-            }）
-            <br />
-            {item.title}（{item.start_time}）
-            <br />
-            ステータス：{item.status === "scheduled" ? "実施" : "中止"}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px" }}>
+              <div>
+                {item.date.toDate().toLocaleDateString()}（{
+                  ["日","月","火","水","木","金","土"][item.date.toDate().getDay()]
+                }）
+                <br />
+                {item.title}（{item.start_time}）
+                <br />
+                ステータス：{item.status === "scheduled" ? "実施" : "中止"}
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  onClick={() => handleToggleStatus(item.id, item.status)}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: item.status === "scheduled" ? "#c62828" : "#2e7d32",
+                    color: "#fff",
+                    cursor: "pointer"
+                  }}
+                >
+                  {item.status === "scheduled" ? "中止" : "再開"}
+                </button>
+                <button
+                  onClick={() => handleDeleteSchedule(item.id)}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "#d32f2f",
+                    color: "#fff",
+                    cursor: "pointer"
+                  }}
+                >
+                  削除
+                </button>
+              </div>
+            </div>
           </div>
         ))}
 
@@ -517,7 +685,7 @@ function App() {
   // 🔽 詳細画面
   //==============================
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
 
       <h1 style={{ textAlign: "center", color: "#fff" }}>
         {selectedStudent.name}
