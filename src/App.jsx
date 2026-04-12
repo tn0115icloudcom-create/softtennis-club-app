@@ -45,7 +45,7 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* 保護者画面 */}
-        <Route path="/parent/:id" element={<Parent />} />
+        <Route path="/parent" element={<Parent />} />
 
         {/* 生徒一覧 */}
         <Route path="/students" element={<Students />} />

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -9,23 +10,54 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // すでにログイン中の場合は管理画面へリダイレクトします。
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+  // roleに基づいてリダイレクトする関数（デバッグ付き）
+const redirectBasedOnRole = async (uid) => {
+  try {
+    console.log("UID:", uid);
+
+    const userDocRef = doc(db, "users", uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    console.log("exists:", userDocSnap.exists());
+
+    if (userDocSnap.exists()) {
+      const userData = userDocSnap.data();
+      console.log("userData:", userData);
+
+      const role = userData.role;
+      console.log("role:", role);
+
+      if (role === "admin") {
+        console.log("→ adminへ");
+        navigate("/admin", { replace: true });
+      } else if (role === "parent") {
+        console.log("→ parentへ");
+        navigate("/parent", { replace: true });
+      } else {
+        console.log("→ role不明");
         navigate("/admin", { replace: true });
       }
-    });
-    return unsubscribe;
-  }, [navigate]);
+    } else {
+      console.log("→ usersにデータなし");
+      navigate("/admin", { replace: true });
+    }
+  } catch (error) {
+    console.error("🔥 role取得エラー:", error);
+    navigate("/admin", { replace: true });
+  }
+};
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/admin", { replace: true });
+      // Firebase Authenticationでログイン
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // ログイン成功後、roleに基づいてリダイレクト
+      await redirectBasedOnRole(user.uid);
     } catch (error) {
       alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
       console.error(error);
@@ -37,7 +69,7 @@ function Login() {
   return (
     <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
       <div style={{ maxWidth: "420px", margin: "0 auto" }}>
-        <h1 style={{ textAlign: "center", marginBottom: "24px" }}>管理者ログイン</h1>
+        <h1 style={{ textAlign: "center", marginBottom: "24px" }}>ログイン</h1>
 
         <form onSubmit={handleLogin} style={{ display: "grid", gap: "14px" }}>
           <label style={{ display: "grid", gap: "6px", color: "#ddd" }}>
@@ -94,7 +126,7 @@ function Login() {
         </form>
 
         <p style={{ marginTop: "18px", color: "#888", fontSize: "14px" }}>
-          管理者用のメールアドレスとパスワードでログインしてください。
+          メールアドレスとパスワードでログインしてください。
         </p>
       </div>
     </div>
