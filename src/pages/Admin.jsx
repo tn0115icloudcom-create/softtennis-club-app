@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase";
 import {
@@ -67,6 +67,13 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newScheduleTime, setNewScheduleTime] = useState("18:00");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [newDate, setNewDate] = useState(getJSTDate(new Date()));
+  const [title, setTitle] = useState("練習");
+  const [time, setTime] = useState("19:00");
+  const menuButtonRef = useRef(null);
+  const menuRef = useRef(null);
 
   //==============================
   // 認証チェック（ログイン必須）
@@ -123,6 +130,48 @@ function App() {
     await signOut(auth);
     navigate("/login", { replace: true });
   };
+
+  const handleRegisterSchedule = async () => {
+    if (!newDate || !title || !time) {
+      alert("日付・タイトル・時間を入力してください");
+      return;
+    }
+
+    const date = new Date(newDate);
+    const [hours, minutes] = time.split(":").map(Number);
+    date.setHours(hours, minutes, 0, 0);
+
+    await addDoc(collection(db, "schedules"), {
+      date,
+      title,
+      start_time: time,
+      status: "scheduled"
+    });
+
+    setShowModal(false);
+    setNewDate(getJSTDate(new Date()));
+    setTitle("練習");
+    setTime("19:00");
+    fetchSchedules();
+    alert("スケジュールを登録しました");
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!isMenuOpen) return;
+      if (
+        menuRef.current &&
+        menuButtonRef.current &&
+        !menuRef.current.contains(event.target) &&
+        !menuButtonRef.current.contains(event.target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isMenuOpen]);
 
   //==============================
   // 月変更処理
@@ -221,7 +270,7 @@ function App() {
           padding: "12px 16px",
           borderBottom: "1px solid #333",
         }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", position: "relative" }}>
           <h1 style={{
             color: "#fff",
             fontSize: "clamp(16px, 5vw, 25px)", // ←自動調整
@@ -229,34 +278,196 @@ function App() {
           }}>
             高橋キッズソフトテニスクラブ
           </h1>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button
-              onClick={() => navigate("/students")}
+          <button
+            ref={menuButtonRef}
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            style={{
+              width: "42px",
+              height: "42px",
+              background: "#444",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "20px",
+              cursor: "pointer"
+            }}
+            aria-label="メニュー"
+          >
+            ≡
+          </button>
+          {isMenuOpen && (
+            <div
+              ref={menuRef}
               style={{
-                padding: "6px 10px",
-                background: "#444",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px"
+                position: "absolute",
+                top: "calc(100% + 10px)",
+                right: 0,
+                background: "#1e1e1e",
+                border: "1px solid #333",
+                borderRadius: "10px",
+                minWidth: "160px",
+                boxShadow: "0 12px 24px rgba(0,0,0,0.25)",
+                zIndex: 1000,
+                padding: "8px"
               }}
             >
-              生徒一覧
-            </button>
+              <button
+                onClick={() => {
+                  navigate("/students");
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "#121212",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  textAlign: "left",
+                  marginBottom: "8px",
+                  cursor: "pointer"
+                }}
+              >
+                生徒一覧
+              </button>
+              <button
+                onClick={() => {
+                  setShowModal(true);
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "#121212",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  textAlign: "left",
+                  marginBottom: "8px",
+                  cursor: "pointer"
+                }}
+              >
+                スケジュール登録
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "#121212",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  textAlign: "left",
+                  cursor: "pointer"
+                }}
+              >
+                ログアウト
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {showModal && (
+        <div
+          onClick={() => setShowModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(94vw, 420px)",
+              background: "#1e1e1e",
+              border: "1px solid #333",
+              borderRadius: "16px",
+              padding: "20px",
+              boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
+              color: "#fff"
+            }}
+          >
+            <h2 style={{ margin: 0, marginBottom: "16px", fontSize: "20px", textAlign: "center" }}>
+              スケジュール登録
+            </h2>
+            <label style={{ display: "block", marginBottom: "14px", fontSize: "14px" }}>
+              日付
+              <input
+                type="date"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                style={{
+                  width: "100%",
+                  marginTop: "8px",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff"
+                }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "14px", fontSize: "14px" }}>
+              タイトル
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                style={{
+                  width: "100%",
+                  marginTop: "8px",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff"
+                }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "20px", fontSize: "14px" }}>
+              時間
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                style={{
+                  width: "100%",
+                  marginTop: "8px",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff"
+                }}
+              />
+            </label>
             <button
-              onClick={handleLogout}
+              onClick={handleRegisterSchedule}
               style={{
-                padding: "6px 10px",
-                background: "#d32f2f",
+                width: "100%",
+                padding: "14px",
+                background: "#4caf50",
                 color: "#fff",
                 border: "none",
-                borderRadius: "6px"
+                borderRadius: "10px",
+                fontWeight: "bold",
+                cursor: "pointer"
               }}
             >
-              ログアウト
+              登録
             </button>
           </div>
         </div>
-      </div>
+      )}
         <div style={{
           marginTop: "20px",
           padding: "20px",
@@ -448,6 +659,7 @@ function App() {
                       onClick={() => setSelectedDate(date)}
                       style={{
                         padding: "10px",
+                        minHeight: "88px",
                         borderRadius: "8px",
                         border: isSelected ? "3px solid #ffb300" : (isToday ? "3px solid #f305e7" : "none"),
                         textAlign: "center",
@@ -456,10 +668,28 @@ function App() {
                             ? (schedule.status === "scheduled" ? "#69f0ae" : "#ff8a80")
                             : "#222",
                         color: "#fff",
-                        cursor: "pointer"
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        gap: "6px"
                       }}
                     >
-                      {date.getDate()}
+                      <div style={{ fontSize: "18px", fontWeight: "bold" }}>{date.getDate()}</div>
+                      {schedule && (
+                        <>
+                          <div style={{ fontSize: "10px", color: "#fff", lineHeight: 1.3 }}>
+                            {schedule.title || "練習"}
+                          </div>
+                          <div style={{
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            color: schedule.status === "scheduled" ? "#0c8cf5" : "#ff1744"
+                          }}>
+                            {schedule.status === "scheduled" ? "実施" : "中止"}
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
@@ -468,71 +698,6 @@ function App() {
             </div>
           );
         })()}
-
-        {/* ==============================
-        スケジュール追加フォーム
-        ============================== */}
-        {viewMode === "calendar" && (
-          <div style={{
-            marginTop: "20px",
-            padding: "18px",
-            borderRadius: "12px",
-            border: "1px solid #333",
-            background: "#1e1e1e"
-          }}>
-            <h3 style={{ color: "#fff", marginBottom: "12px" }}>スケジュール追加</h3>
-            <div style={{ display: "grid", gap: "10px" }}>
-              <input
-                type="text"
-                placeholder="タイトル（例：練習）"
-                value={newScheduleTitle}
-                onChange={(e) => setNewScheduleTitle(e.target.value)}
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff"
-                }}
-              />
-              <div style={{
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #333",
-                background: "#121212",
-                color: "#fff"
-              }}>
-                選択日付：{selectedDate ? selectedDate.toLocaleDateString() : "カレンダーから選択"}
-              </div>
-              <input
-                type="time"
-                value={newScheduleTime}
-                onChange={(e) => setNewScheduleTime(e.target.value)}
-                style={{
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff"
-                }}
-              />
-              <button
-                onClick={handleAddSchedule}
-                style={{
-                  padding: "14px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: "#4CAF50",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  cursor: "pointer"
-                }}
-              >
-                追加
-              </button>
-            </div>
-          </div>
-        )}
 
        {/* ==============================
          スケジュール一覧
