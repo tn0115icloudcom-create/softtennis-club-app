@@ -420,7 +420,9 @@ function App() {
               borderRadius: "16px",
               padding: "16px",
               boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
-              color: "#fff"
+              color: "#fff",
+              maxHeight: "80vh",
+              overflowY: "auto"
             }}
           >
             <h2 style={{ margin: 0, marginBottom: "14px", fontSize: "18px", textAlign: "center" }}>
@@ -490,10 +492,25 @@ function App() {
                 border: "none",
                 borderRadius: "10px",
                 fontWeight: "bold",
-                cursor: "pointer"
+                cursor: "pointer",
+                marginBottom: "8px"
               }}
             >
               登録
+            </button>
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "#666",
+                color: "#fff",
+                border: "none",
+                borderRadius: "10px",
+                cursor: "pointer"
+              }}
+            >
+              キャンセル
             </button>
           </div>
         </div>
@@ -706,7 +723,7 @@ function App() {
           const days = generateCalendar(year, month);
 
           return (
-            <div>
+            <div style={{ overflowX: "hidden" }}>
 
               {/* 月切替ヘッダー */} 
               <div style={{
@@ -745,7 +762,7 @@ function App() {
               {/* 曜日 */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
+                gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
                 marginBottom: "5px"
               }}>
                 {["日","月","火","水","木","金","土"].map(d => (
@@ -758,7 +775,7 @@ function App() {
               {/* カレンダー */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(7, 1fr)",
+                gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
                 gap: "6px"
               }}>
 
@@ -790,7 +807,7 @@ function App() {
                         }
                       }}
                       style={{
-                        padding: "6px",
+                        padding: "4px",
                         aspectRatio: "1 / 1",
                         borderRadius: "8px",
                         border: isSelected ? "3px solid #ffb300" : (isToday ? "3px solid #f305e7" : "none"),
