@@ -821,15 +821,12 @@ function App() {
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        gap: "4px"
+                        gap: "1px"
                       }}
                     >
                       <div style={{ fontSize: "16px", fontWeight: "bold" }}>{date.getDate()}</div>
                       {schedule && (
                         <>
-                          <div style={{ fontSize: "9px", color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {schedule.title || "練習"}
-                          </div>
                           <div style={{
                             fontSize: "11px",
                             fontWeight: "bold",
