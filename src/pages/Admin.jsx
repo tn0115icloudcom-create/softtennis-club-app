@@ -65,6 +65,8 @@ function App() {
   const [viewMode, setViewMode] = useState("list");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newScheduleTime, setNewScheduleTime] = useState("18:00");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -154,6 +156,29 @@ function App() {
     setTime("19:00");
     fetchSchedules();
     alert("スケジュールを登録しました");
+  };
+
+  const openScheduleEditor = (schedule) => {
+    setSelectedSchedule(schedule);
+    setShowEditModal(true);
+  };
+
+  const handleChangeScheduleStatus = async (scheduleId, status) => {
+    await updateDoc(doc(db, "schedules", scheduleId), {
+      status
+    });
+    fetchSchedules();
+    setShowEditModal(false);
+    setSelectedSchedule(null);
+  };
+
+  const handleDeleteSelectedSchedule = async () => {
+    if (!selectedSchedule) return;
+    if (!window.confirm("このスケジュールを削除しますか？")) return;
+    await deleteDoc(doc(db, "schedules", selectedSchedule.id));
+    fetchSchedules();
+    setShowEditModal(false);
+    setSelectedSchedule(null);
   };
 
   useEffect(() => {
@@ -387,19 +412,21 @@ function App() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "min(94vw, 420px)",
+              width: "90%",
+              maxWidth: "400px",
+              margin: "0 auto",
               background: "#1e1e1e",
               border: "1px solid #333",
               borderRadius: "16px",
-              padding: "20px",
+              padding: "16px",
               boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
               color: "#fff"
             }}
           >
-            <h2 style={{ margin: 0, marginBottom: "16px", fontSize: "20px", textAlign: "center" }}>
+            <h2 style={{ margin: 0, marginBottom: "14px", fontSize: "18px", textAlign: "center" }}>
               スケジュール登録
             </h2>
-            <label style={{ display: "block", marginBottom: "14px", fontSize: "14px" }}>
+            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
               日付
               <input
                 type="date"
@@ -407,16 +434,17 @@ function App() {
                 onChange={(e) => setNewDate(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "8px",
-                  padding: "12px",
-                  borderRadius: "10px",
+                  marginTop: "6px",
+                  padding: "10px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
-                  color: "#fff"
+                  color: "#fff",
+                  boxSizing: "border-box"
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "14px", fontSize: "14px" }}>
+            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
               タイトル
               <input
                 type="text"
@@ -424,16 +452,17 @@ function App() {
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "8px",
-                  padding: "12px",
-                  borderRadius: "10px",
+                  marginTop: "6px",
+                  padding: "10px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
-                  color: "#fff"
+                  color: "#fff",
+                  boxSizing: "border-box"
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "20px", fontSize: "14px" }}>
+            <label style={{ display: "block", marginBottom: "16px", fontSize: "13px" }}>
               時間
               <input
                 type="time"
@@ -441,12 +470,13 @@ function App() {
                 onChange={(e) => setTime(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "8px",
-                  padding: "12px",
-                  borderRadius: "10px",
+                  marginTop: "6px",
+                  padding: "10px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
-                  color: "#fff"
+                  color: "#fff",
+                  boxSizing: "border-box"
                 }}
               />
             </label>
@@ -465,6 +495,103 @@ function App() {
             >
               登録
             </button>
+          </div>
+        </div>
+      )}
+      {showEditModal && selectedSchedule && (
+        <div
+          onClick={() => setShowEditModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1200
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "90%",
+              maxWidth: "400px",
+              margin: "0 auto",
+              background: "#1e1e1e",
+              border: "1px solid #333",
+              borderRadius: "16px",
+              padding: "16px",
+              boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
+              color: "#fff"
+            }}
+          >
+            <h2 style={{ margin: 0, marginBottom: "14px", fontSize: "18px", textAlign: "center" }}>
+              スケジュール操作
+            </h2>
+            <div style={{ marginBottom: "12px", color: "#fff" }}>
+              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>タイトル</div>
+              <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.title || "練習"}</div>
+            </div>
+            <div style={{ marginBottom: "12px", color: "#fff" }}>
+              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>時間</div>
+              <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.start_time || "-"}</div>
+            </div>
+            <div style={{ marginBottom: "16px", color: "#fff" }}>
+              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>ステータス</div>
+              <div style={{
+                fontSize: "14px",
+                fontWeight: "bold",
+                color: selectedSchedule.status === "scheduled" ? "#0c8cf5" : "#ff1744"
+              }}>
+                {selectedSchedule.status === "scheduled" ? "実施" : "中止"}
+              </div>
+            </div>
+            <div style={{ display: "grid", gap: "12px" }}>
+              <button
+                onClick={() => handleChangeScheduleStatus(selectedSchedule.id, selectedSchedule.status === "scheduled" ? "cancelled" : "scheduled")}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  background: "#0c8cf5",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                {selectedSchedule.status === "scheduled" ? "中止にする" : "実施にする"}
+              </button>
+              <button
+                onClick={handleDeleteSelectedSchedule}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  background: "#d32f2f",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                削除
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  background: "#444",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  cursor: "pointer"
+                }}
+              >
+                閉じる
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -656,10 +783,15 @@ function App() {
                   return (
                     <div
                       key={date.toISOString()}
-                      onClick={() => setSelectedDate(date)}
+                      onClick={() => {
+                        setSelectedDate(date);
+                        if (schedule) {
+                          openScheduleEditor(schedule);
+                        }
+                      }}
                       style={{
-                        padding: "10px",
-                        minHeight: "88px",
+                        padding: "6px",
+                        aspectRatio: "1 / 1",
                         borderRadius: "8px",
                         border: isSelected ? "3px solid #ffb300" : (isToday ? "3px solid #f305e7" : "none"),
                         textAlign: "center",
@@ -668,21 +800,21 @@ function App() {
                             ? (schedule.status === "scheduled" ? "#69f0ae" : "#ff8a80")
                             : "#222",
                         color: "#fff",
-                        cursor: "pointer",
+                        cursor: schedule ? "pointer" : "default",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
-                        gap: "6px"
+                        gap: "4px"
                       }}
                     >
-                      <div style={{ fontSize: "18px", fontWeight: "bold" }}>{date.getDate()}</div>
+                      <div style={{ fontSize: "16px", fontWeight: "bold" }}>{date.getDate()}</div>
                       {schedule && (
                         <>
-                          <div style={{ fontSize: "10px", color: "#fff", lineHeight: 1.3 }}>
+                          <div style={{ fontSize: "9px", color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis" }}>
                             {schedule.title || "練習"}
                           </div>
                           <div style={{
-                            fontSize: "12px",
+                            fontSize: "11px",
                             fontWeight: "bold",
                             color: schedule.status === "scheduled" ? "#0c8cf5" : "#ff1744"
                           }}>
