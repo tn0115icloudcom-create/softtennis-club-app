@@ -160,24 +160,33 @@ function Students() {
   <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
 
     <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
+      background: "#1e1e1e",
+      padding: "12px 16px",
+      borderBottom: "1px solid #333",
     }}>
-      <h1 style={{ color: "#fff" }}>生徒一覧</h1>
-
-      <button
-        onClick={() => navigate("/admin")}
-        style={{
-          padding: "8px 12px",
-          background: "#444",
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 style={{
           color: "#fff",
-          border: "none",
-          borderRadius: "6px"
-        }}
-      >
-        ホーム
-      </button>
+          fontSize: "clamp(16px, 5vw, 25px)",
+          margin: 0
+        }}>
+          生徒一覧
+        </h1>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            onClick={() => navigate("/admin")}
+            style={{
+              padding: "6px 10px",
+              background: "#444",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px"
+            }}
+          >
+            ホーム
+          </button>
+        </div>
+      </div>
     </div>
 
       {students.map(s => (
@@ -185,8 +194,7 @@ function Students() {
           key={s.id}
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column", // ←追加
             padding: "18px",
             margin: "12px 0",
             background: "#1e1e1e",
@@ -197,27 +205,58 @@ function Students() {
             fontWeight: "bold"
           }}
         >
-          <div
-            onClick={() => navigate(`/students/${s.id}`)}
-            style={{ cursor: "pointer", flex: 1 }}
-          >
-            {s.name}
+
+          {/* 上段：名前 + 参加 */}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}>
+
+            <div
+              onClick={() => navigate(`/students/${s.id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              {s.name}
+            </div>
+
+            <button
+              onClick={() => handleAttend(s.id)}
+              disabled={(remainings[s.id] || 0) <= 0}
+              style={{
+                padding: "10px 20px",
+                background: (remainings[s.id] || 0) > 0 ? "#4CAF50" : "#666",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                fontSize: "16px"
+              }}
+            >
+              参加
+            </button>
+
           </div>
+
+          {/* 下段：招待リンク */}
           <button
-            onClick={() => handleAttend(s.id)}
-            disabled={(remainings[s.id] || 0) <= 0}
+            onClick={() => {
+              const url = `${window.location.origin}/register?studentId=${s.id}`;
+              navigator.clipboard.writeText(url);
+              alert("招待リンクをコピーしました");
+            }}
             style={{
-              padding: "10px 20px",
-              background: (remainings[s.id] || 0) > 0 ? "#4CAF50" : "#666",
+              marginTop: "10px",
+              padding: "8px",
+              background: "#2196f3",
               color: "#fff",
               border: "none",
               borderRadius: "6px",
-              fontSize: "16px",
-              cursor: (remainings[s.id] || 0) > 0 ? "pointer" : "not-allowed"
+              fontSize: "14px"
             }}
           >
-            参加
+            招待リンクをコピー
           </button>
+
         </div>
       ))}
 

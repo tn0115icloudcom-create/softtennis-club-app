@@ -2,15 +2,32 @@ import { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [studentId, setStudentId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlStudentId = searchParams.get("studentId");
+
+  console.log("URLから取得したstudentId:", urlStudentId);
+
+  // studentIdがない場合はエラー
+  if (!urlStudentId) {
+    return (
+      <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
+        <div style={{ maxWidth: "420px", margin: "0 auto", textAlign: "center" }}>
+          <h1 style={{ color: "#f44336" }}>エラー</h1>
+          <p>管理者から提供されたリンク経由でアクセスしてください。</p>
+          <p style={{ fontSize: "14px", color: "#f44336" }}>studentIdが見つかりません</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -26,9 +43,10 @@ function Register() {
       //==============================
       // Firestoreに保存（超重要）
       //==============================
+      console.log("Firestoreに保存するstudentId:", urlStudentId);
       await setDoc(doc(db, "users", user.uid), {
         role: "parent",
-        student_ids: [studentId] // 配列で保存
+        student_ids: [urlStudentId] // URLから取得したstudentIdを配列で保存
       });
 
       alert("登録完了しました。ログインしました。");
@@ -73,14 +91,6 @@ function Register() {
             placeholder="パスワード"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ padding: "12px", borderRadius: "8px" }}
-          />
-
-          <input
-            type="text"
-            placeholder="生徒ID（管理者からもらう）"
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
             style={{ padding: "12px", borderRadius: "8px" }}
           />
 

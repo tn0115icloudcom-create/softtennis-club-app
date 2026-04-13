@@ -128,7 +128,7 @@ function Parent() {
   return (
     <div style={{ padding: "20px", background: "#121212", minHeight: "100vh", color: "#fff" }}>
 
-      {/* タイトル */}
+      {/* タイトルとログアウトが別 */}
       <div style={{
         background: "#1e1e1e",
         padding: "12px",
@@ -142,7 +142,6 @@ function Parent() {
         </h1>
       </div>
 
-      {/* ログアウト */}
       <div style={{ textAlign: "right", marginTop: "10px" }}>
         <button onClick={handleLogout} style={{
           padding: "6px 12px",
