@@ -266,31 +266,51 @@ function App() {
           textAlign: "center"
         }}>
 
-          {/* 日付 */}
+          <div style={{
+            fontSize: "30px",
+            fontWeight: "bold",
+            color: "#aaa",
+            marginBottom: "20px"
+          }}>
+            《本日の活動》
+          </div>
+
           <div style={{
             fontSize: "20px",
             fontWeight: "bold",
             color: "#fff",
             marginBottom: "10px"
           }}>
-            {todaySchedule &&
-              todaySchedule.date.toDate().toLocaleDateString() + "（" +
-              ["日","月","火","水","木","金","土"][todaySchedule.date.toDate().getDay()] + "）"
+            {todaySchedule
+              ? todaySchedule.date.toDate().toLocaleDateString() + "（" +
+                ["日","月","火","水","木","金","土"][todaySchedule.date.toDate().getDay()] + "）"
+              : "なし"
             }
           </div>
 
-          {/* 状態（超重要） */}
           <div style={{
             marginTop: "8px",
             fontSize: "28px",
             fontWeight: "bold",
             color: todaySchedule
               ? (todaySchedule.status === "scheduled" ? "#0c8cf5" : "#ff1744")
-              : "#888"
+              : "#888",
+            marginBottom: "14px"
           }}>
             {todaySchedule
               ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
               : "なし"}
+          </div>
+
+          <div style={{
+            fontSize: "18px",
+            color: todaySchedule ? "#fff" : "#888",
+            fontWeight: todaySchedule ? "600" : "400"
+          }}>
+            {todaySchedule
+              ? `${todaySchedule.title || "-"}（${todaySchedule.start_time || "-"}）`
+              : ""
+            }
           </div>
 
         </div>
