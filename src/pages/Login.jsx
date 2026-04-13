@@ -128,6 +128,13 @@ const redirectBasedOnRole = async (uid) => {
         <p style={{ marginTop: "18px", color: "#888", fontSize: "14px" }}>
           メールアドレスとパスワードでログインしてください。
         </p>
+
+        <p style={{ marginTop: "20px" }}>
+          <button onClick={() => navigate("/register")}>
+            新規登録はこちら
+          </button>
+        </p>
+
       </div>
     </div>
   );

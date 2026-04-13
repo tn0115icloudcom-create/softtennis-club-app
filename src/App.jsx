@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Parent from "./pages/Parent";
 import Students from "./pages/Students";
 import StudentDetail from "./pages/StudentDetail";
+import Register from "./pages/Register";
 
 function PrivateRoute({ children }) {
   const [isReady, setIsReady] = useState(false);
@@ -56,6 +57,9 @@ function App() {
         {/* ルートまたは不明なパスはログインへ */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+
+        {/* 新規登録画面へ */}
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   );
