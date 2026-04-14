@@ -475,7 +475,7 @@ function App() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
-                  width: "calc(100% - 20px)",
+                  width: "calc(100% - 10px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
@@ -529,89 +529,113 @@ function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.65)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            background: "rgba(0,0,0,0.6)",
             zIndex: 1200
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "90%",
-              maxWidth: "400px",
-              margin: "0 auto",
+              position: "fixed",
+              bottom: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "calc(100% - 24px)",
+              maxWidth: "420px",
+
               background: "#1e1e1e",
-              border: "1px solid #333",
               borderRadius: "16px",
               padding: "16px",
-              boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
-              color: "#fff"
+              boxShadow: "0 -6px 20px rgba(0,0,0,0.4)"
             }}
           >
-            <h2 style={{ margin: 0, marginBottom: "14px", fontSize: "18px", textAlign: "center" }}>
+            {/* タイトル */}
+            <div style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "#fff",
+              textAlign: "center",
+              marginBottom: "8px"
+            }}>
               スケジュール操作
-            </h2>
-            <div style={{ marginBottom: "12px", color: "#fff" }}>
-              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>タイトル</div>
-              <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.title || "練習"}</div>
             </div>
-            <div style={{ marginBottom: "12px", color: "#fff" }}>
-              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>開始時間</div>
-              <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.start_time || "-"}</div>
-            </div>
-            <div style={{ marginBottom: "16px", color: "#fff" }}>
-              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>ステータス</div>
-              <div style={{
-                fontSize: "14px",
-                fontWeight: "bold",
-                color: selectedSchedule.status === "scheduled" ? "#0c8cf5" : "#ff1744"
-              }}>
-                {selectedSchedule.status === "scheduled" ? "実施" : "中止"}
+
+            {/* メイン情報 */}
+            <div style={{
+              textAlign: "center",
+              marginBottom: "14px"
+            }}>
+              <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+                {selectedSchedule.title}
+              </div>
+              <div style={{ fontSize: "14px", color: "#ccc" }}>
+                {selectedSchedule.start_time}
               </div>
             </div>
-            <div style={{ display: "grid", gap: "12px" }}>
+
+            {/* ステータス */}
+            <div style={{
+              textAlign: "center",
+              marginBottom: "14px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: selectedSchedule.status === "scheduled" ? "#00e676" : "#ff1744"
+            }}>
+              {selectedSchedule.status === "scheduled" ? "実施" : "中止"}
+            </div>
+
+            {/* ボタン群 */}
+            <div style={{ display: "grid", gap: "10px" }}>
+
+              {/* 状態切替 */}
               <button
-                onClick={() => handleChangeScheduleStatus(selectedSchedule.id, selectedSchedule.status === "scheduled" ? "cancelled" : "scheduled")}
+                onClick={() =>
+                  handleChangeScheduleStatus(
+                    selectedSchedule.id,
+                    selectedSchedule.status === "scheduled"
+                      ? "cancelled"
+                      : "scheduled"
+                  )
+                }
                 style={{
-                  width: "100%",
                   padding: "14px",
-                  background: "#0c8cf5",
-                  color: "#fff",
-                  border: "none",
                   borderRadius: "10px",
-                  fontWeight: "bold",
-                  cursor: "pointer"
+                  border: "none",
+                  background: selectedSchedule.status === "scheduled"
+                    ? "#ff1744"
+                    : "#00e676",
+                  color: "#fff",
+                  fontWeight: "bold"
                 }}
               >
-                {selectedSchedule.status === "scheduled" ? "中止にする" : "実施にする"}
+                {selectedSchedule.status === "scheduled"
+                  ? "中止にする"
+                  : "実施に戻す"}
               </button>
+
+              {/* 削除 */}
               <button
                 onClick={handleDeleteSelectedSchedule}
                 style={{
-                  width: "100%",
                   padding: "14px",
-                  background: "#d32f2f",
-                  color: "#fff",
-                  border: "none",
                   borderRadius: "10px",
-                  fontWeight: "bold",
-                  cursor: "pointer"
+                  border: "none",
+                  background: "#d32f2f",
+                  color: "#fff"
                 }}
               >
                 削除
               </button>
+
+              {/* 閉じる */}
               <button
                 onClick={() => setShowEditModal(false)}
                 style={{
-                  width: "100%",
                   padding: "12px",
-                  background: "#444",
-                  color: "#fff",
-                  border: "none",
                   borderRadius: "10px",
-                  cursor: "pointer"
+                  border: "none",
+                  background: "#444",
+                  color: "#fff"
                 }}
               >
                 閉じる

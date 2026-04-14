@@ -42,6 +42,8 @@ function Parent() {
   const [todaySchedule, setTodaySchedule] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [remainings, setRemainings] = useState({});
+  const [ticketsLoaded, setTicketsLoaded] = useState(false);
 
   //==============================
   // ログインユーザー取得
@@ -90,6 +92,33 @@ function Parent() {
       })));
     };
     fetchSchedules();
+  }, []);
+
+  //==============================
+  // 回数券残数取得
+  //==============================
+  useEffect(() => {
+    const fetchTicketRemainings = async () => {
+      const snapshot = await getDocs(collection(db, "tickets"));
+      const map = {};
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const studentId = data.student_id;
+        if (!studentId) return;
+
+        const total = Number(data.total ?? 0);
+        const used = Number(data.used ?? 0);
+        const remaining = total - used;
+
+        map[studentId] = (map[studentId] || 0) + remaining;
+      });
+
+      setRemainings(map);
+      setTicketsLoaded(true);
+    };
+
+    fetchTicketRemainings();
   }, []);
 
   //==============================
@@ -164,8 +193,20 @@ function Parent() {
         background: "#1e1e1e",
         textAlign: "center"
       }}>
+
+        <div style={{
+          fontSize: "30px",
+          fontWeight: "bold",
+          color: "#aaa",
+          marginBottom: "20px"
+        }}>
+          《本日の活動》
+        </div>
+
         <div style={{ fontSize: "18px" }}>
-          {new Date().toLocaleDateString()}（{getWeekday(new Date())}）
+          {todaySchedule
+            ? todaySchedule.date.toDate().toLocaleDateString() + "（" + getWeekday(todaySchedule.date.toDate()) + "）"
+            : "なし"}
         </div>
 
         <div style={{
@@ -180,6 +221,19 @@ function Parent() {
             ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
             : "なし"}
         </div>
+
+        {/* タイトル＋時間 */}
+        <div style={{
+          fontSize: "18px",
+          marginTop: "10px",
+          color: todaySchedule ? "#fff" : "#888",
+          fontWeight: "bold"
+        }}>
+          {todaySchedule
+            ? `${todaySchedule.title || "-"}（${todaySchedule.start_time || "-"}）`
+            : ""}
+        </div>
+
       </div>
 
       {/* =========================
@@ -190,11 +244,15 @@ function Parent() {
           marginTop: "15px",
           padding: "15px",
           background: "#1e1e1e",
+          border: "1px solid #333",
           borderRadius: "10px",
           textAlign: "center",
           fontWeight: "bold"
         }}>
           {s.name}
+          <div style={{ marginTop: "8px", fontSize: "14px", color: "#ccc", fontWeight: "normal" }}>
+            回数券：{ticketsLoaded ? `残り ${remainings[s.id] ?? 0}枚` : "取得中"}
+          </div>
         </div>
       ))}
 
@@ -237,12 +295,12 @@ function Parent() {
             <div key={item.id} style={{
               padding: "12px",
               margin: "10px 0",
-              background: item.status === "cancelled" ? "#333" : "#1e1e1e",
+              background: item.status === "cancelled" ? "#8b0000" : "#2e7d32",
               borderRadius: "10px"
             }}>
               {item.date.toDate().toLocaleDateString()}（{getWeekday(item.date.toDate())}）
               <br />
-              {item.title}
+              {item.title}（{item.start_time}）
               <br />
               {item.status === "scheduled" ? "実施" : "中止"}
             </div>
