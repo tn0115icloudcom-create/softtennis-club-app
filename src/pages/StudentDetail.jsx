@@ -1,40 +1,25 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs
-} from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { useParams, useNavigate } from "react-router-dom";
 
 function StudentDetail() {
-
-  //==============================
-  // パラメータ取得（URLのID）
-  //==============================
   const { id } = useParams();
-
-  //==============================
-  // 画面状態
-  //==============================
-  const [student, setStudent] = useState(null);
-  const [remaining, setRemaining] = useState(null);
-
   const navigate = useNavigate();
+
+  const [student, setStudent] = useState(null);
+  const [attendance, setAttendance] = useState([]);
 
   //==============================
   // 生徒情報取得
   //==============================
   useEffect(() => {
     const fetchStudent = async () => {
-      const docRef = doc(db, "students", id);
-      const docSnap = await getDoc(docRef);
+      const ref = doc(db, "students", id);
+      const snap = await getDoc(ref);
 
-      if (docSnap.exists()) {
-        setStudent(docSnap.data());
+      if (snap.exists()) {
+        setStudent(snap.data());
       }
     };
 
@@ -42,97 +27,109 @@ function StudentDetail() {
   }, [id]);
 
   //==============================
-  // 回数券取得
+  // 参加履歴取得
   //==============================
   useEffect(() => {
-    const fetchTicket = async () => {
+    const fetchAttendance = async () => {
       const q = query(
-        collection(db, "tickets"),
+        collection(db, "attendance"),
         where("student_id", "==", id)
       );
 
       const snapshot = await getDocs(q);
 
-      if (!snapshot.empty) {
-        const data = snapshot.docs[0].data();
-        setRemaining((data.total || 0) - (data.used || 0));
-      } else {
-        setRemaining(0);
-      }
+      const list = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // 日付降順
+      list.sort((a, b) => b.date.toDate() - a.date.toDate());
+
+      setAttendance(list);
     };
 
-    fetchTicket();
+    fetchAttendance();
   }, [id]);
 
-  //==============================
-  // UI
-  //==============================
+  if (!student) return <div style={{ padding: 20 }}>読み込み中...</div>;
+
   return (
     <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
 
       {/* ヘッダー */}
       <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
+        position: "relative",
+        marginBottom: "20px",
+        textAlign: "center"
       }}>
-        <h1>生徒詳細</h1>
 
-        <button onClick={() => navigate("/students")}
+        {/* 戻るボタン（左上固定） */}
+        <button
+          onClick={() => navigate(-1)}
           style={{
-            padding: "6px 12px",
+            position: "absolute",
+            right: "0",
+            top: "0",
             background: "#444",
             color: "#fff",
             border: "none",
+            padding: "6px 10px",
             borderRadius: "6px"
           }}
         >
           戻る
         </button>
+
+         {/* タイトル */}
+        <h1 style={{
+          color: "#fff",
+          fontSize: "22px",
+          margin: 0
+        }}>
+          生徒詳細
+        </h1>
+
       </div>
 
-      {/* 名前 */}
+      {/* 生徒情報 */}
       <div style={{
-        padding: "20px",
-        margin: "20px 0",
         background: "#1e1e1e",
-        border: "1px solid #333",
+        padding: "16px",
         borderRadius: "12px",
-        textAlign: "center"
+        marginBottom: "20px"
       }}>
-        <h2 style={{ margin: 0 }}>
-          {student ? student.name : "読み込み中..."}
-        </h2>
+        <div style={{ fontSize: "20px", fontWeight: "bold", color: "#fff" }}>
+          {student.name}
+        </div>
+
+        <div style={{ marginTop: "8px", color: "#ccc" }}>
+          性別：{student.gender || "未設定"}
+        </div>
+
+        <div style={{ marginTop: "8px", color: "#ccc" }}>
+          備考：{student.note || "なし"}
+        </div>
       </div>
 
-      {/* 回数券 */}
-      <div style={{
-        padding: "20px",
-        margin: "20px 0",
-        background: "#1e1e1e",
-        border: "1px solid #333",
-        borderRadius: "12px",
-        textAlign: "center"
-      }}>
-        <p style={{ fontSize: "20px", margin: 0 }}>
-          {remaining !== null
-            ? `回数券：残り${remaining}枚`
-            : "読み込み中..."}
-        </p>
-      </div>
+      {/* 参加履歴 */}
+      <div>
+        <h2 style={{ marginBottom: "10px" }}>参加履歴</h2>
 
-      {/* 今後の拡張用スペース */}
-      <div style={{
-        padding: "20px",
-        margin: "20px 0",
-        background: "#1e1e1e",
-        border: "1px solid #333",
-        borderRadius: "12px",
-        textAlign: "center",
-        color: "#888"
-      }}>
-        <p>入会日：準備中</p>
-        <p>練習回数：準備中</p>
+        {attendance.length === 0 && (
+          <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
+        )}
+
+        {attendance.map(a => (
+          <div key={a.id} style={{
+            background: "#1e1e1e",
+            padding: "12px",
+            borderRadius: "10px",
+            marginBottom: "8px"
+          }}>
+            {a.date.toDate().toLocaleDateString()} - {a.status}
+          </div>
+        ))}
       </div>
 
     </div>

@@ -13,6 +13,21 @@ const getJSTDate = (date) => {
     .slice(0, 10);
 };
 
+//==============================
+// 学年計算
+//==============================
+const calculateGrade = (gradeYear) => {
+  const now = new Date();
+  let grade = now.getFullYear() - gradeYear;
+
+  // 4月未満ならまだ進級してない
+  if (now.getMonth() < 3) {
+    grade -= 1;
+  }
+
+  return Math.min(Math.max(grade, 1), 6);
+};
+
 function Students() {
 
   const [students, setStudents] = useState([]);
@@ -192,36 +207,45 @@ function Students() {
       {students.map(s => (
         <div
           key={s.id}
+          onClick={() => navigate(`/students/${s.id}`)}
           style={{
             display: "flex",
-            flexDirection: "column", // ←追加
+            flexDirection: "column",
             padding: "18px",
             margin: "12px 0",
             background: "#1e1e1e",
             border: "1px solid #333",
             borderRadius: "12px",
-            fontSize: "20px",
-            color: "#fff",
-            fontWeight: "bold"
+            cursor: "pointer"
           }}
         >
 
-          {/* 上段：名前 + 参加 */}
+          {/* 上段：学年 + 名前 + 参加 */}
           <div style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center"
           }}>
 
-            <div
-              onClick={() => navigate(`/students/${s.id}`)}
-              style={{ cursor: "pointer" }}
-            >
-              {s.name}
+            <div>
+              <span style={{ fontSize: "16px", color: "#aaa" }}>
+                {s.grade ? `${calculateGrade(s.grade)}年生` : "学年未設定"}
+              </span>
+              <span style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+                marginLeft: "8px",
+                color: s.gender === "male" ? "#4fc3f7" : (s.gender === "female" ? "#f06292" : "#fff")
+              }}>
+                {s.name}
+              </span>
             </div>
 
             <button
-              onClick={() => handleAttend(s.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAttend(s.id);
+              }}
               disabled={(remainings[s.id] || 0) <= 0}
               style={{
                 padding: "10px 20px",
@@ -229,7 +253,8 @@ function Students() {
                 color: "#fff",
                 border: "none",
                 borderRadius: "6px",
-                fontSize: "16px"
+                fontSize: "16px",
+                cursor: "pointer"
               }}
             >
               参加
@@ -237,25 +262,14 @@ function Students() {
 
           </div>
 
-          {/* 下段：招待リンク */}
-          <button
-            onClick={() => {
-              const url = `${window.location.origin}/register?studentId=${s.id}`;
-              navigator.clipboard.writeText(url);
-              alert("招待リンクをコピーしました");
-            }}
-            style={{
-              marginTop: "10px",
-              padding: "8px",
-              background: "#2196f3",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "14px"
-            }}
-          >
-            招待リンクをコピー
-          </button>
+          {/* 下段：回数券表示 */}
+          <div style={{
+            marginTop: "10px",
+            fontSize: "14px",
+            color: "#ccc"
+          }}>
+            回数券：残り {remainings[s.id] ?? 0}枚
+          </div>
 
         </div>
       ))}
