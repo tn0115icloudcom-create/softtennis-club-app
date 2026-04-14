@@ -135,7 +135,7 @@ function App() {
 
   const handleRegisterSchedule = async () => {
     if (!newDate || !title || !time) {
-      alert("日付・タイトル・時間を入力してください");
+      alert("日付・タイトル・開始時間を入力してください");
       return;
     }
 
@@ -468,7 +468,7 @@ function App() {
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
-              時間
+              開始時間
               <input
                 type="time"
                 value={time}
@@ -557,7 +557,7 @@ function App() {
               <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.title || "練習"}</div>
             </div>
             <div style={{ marginBottom: "12px", color: "#fff" }}>
-              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>時間</div>
+              <div style={{ fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>開始時間</div>
               <div style={{ fontSize: "14px", fontWeight: "bold" }}>{selectedSchedule.start_time || "-"}</div>
             </div>
             <div style={{ marginBottom: "16px", color: "#fff" }}>
