@@ -404,7 +404,7 @@ function App() {
             inset: 0,
             background: "rgba(0, 0, 0, 0.65)",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             justifyContent: "center",
             zIndex: 1100
           }}
@@ -412,20 +412,24 @@ function App() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "90%",
-              maxWidth: "400px",
-              margin: "0 auto",
+              position: "fixed",
+              bottom: 0,
+              width: "100%",
+              maxWidth: "500px",
               background: "#1e1e1e",
-              border: "1px solid #333",
-              borderRadius: "16px",
-              padding: "16px",
-              boxShadow: "0 16px 40px rgba(0,0,0,0.35)",
+              borderTopLeftRadius: "16px",
+              borderTopRightRadius: "16px",
+              padding: "10px",
+              boxShadow: "0 -8px 24px rgba(0,0,0,0.35)",
               color: "#fff",
-              maxHeight: "80vh",
-              overflowY: "auto"
+              maxHeight: "60vh",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px"
             }}
           >
-            <h2 style={{ margin: 0, marginBottom: "14px", fontSize: "18px", textAlign: "center" }}>
+            <h2 style={{ margin: 0, fontSize: "16px", textAlign: "center" }}>
               スケジュール登録
             </h2>
             <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
@@ -438,7 +442,7 @@ function App() {
                   width: "100%",
                   marginTop: "6px",
                   padding: "10px",
-                  borderRadius: "8px",
+                  borderRadius: "10px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
@@ -456,7 +460,7 @@ function App() {
                   width: "100%",
                   marginTop: "6px",
                   padding: "10px",
-                  borderRadius: "8px",
+                  borderRadius: "10px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
@@ -464,7 +468,7 @@ function App() {
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "16px", fontSize: "13px" }}>
+            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
               時間
               <input
                 type="time"
@@ -474,7 +478,7 @@ function App() {
                   width: "100%",
                   marginTop: "6px",
                   padding: "10px",
-                  borderRadius: "8px",
+                  borderRadius: "10px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
@@ -482,36 +486,37 @@ function App() {
                 }}
               />
             </label>
-            <button
-              onClick={handleRegisterSchedule}
-              style={{
-                width: "100%",
-                padding: "14px",
-                background: "#4caf50",
-                color: "#fff",
-                border: "none",
-                borderRadius: "10px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                marginBottom: "8px"
-              }}
-            >
-              登録
-            </button>
-            <button
-              onClick={() => setShowModal(false)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                background: "#666",
-                color: "#fff",
-                border: "none",
-                borderRadius: "10px",
-                cursor: "pointer"
-              }}
-            >
-              キャンセル
-            </button>
+            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  background: "#666",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  cursor: "pointer"
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleRegisterSchedule}
+                style={{
+                  flex: 1,
+                  padding: "14px",
+                  background: "#4caf50",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                登録
+              </button>
+            </div>
           </div>
         </div>
       )}
