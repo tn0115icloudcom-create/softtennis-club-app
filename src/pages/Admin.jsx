@@ -416,7 +416,7 @@ function App() {
             bottom: "10px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "calc(100% - 20px)"
+            width: "calc(100% - 20px)",
             maxWidth: "420px",
 
             background: "#1e1e1e",
