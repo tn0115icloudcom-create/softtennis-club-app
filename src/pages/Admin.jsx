@@ -409,23 +409,27 @@ function App() {
             zIndex: 1100
           }}
         >
-          <div style={{
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
             position: "fixed",
             bottom: "10px",
-            left: "8px",
-            right: "8px",
+            left: "4px",
+            right: "4px",
             maxWidth: "480px",
             margin: "0 auto",
             background: "#1e1e1e",
             borderRadius: "16px",
-            padding: "12px",
+            padding: "10px",
             boxShadow: "0 -4px 20px rgba(0,0,0,0.4)",
-            zIndex: 1000
+            zIndex: 1000,
+            maxHeight: "80vh",
+            overflowY: "auto"
           }}>
-            <h2 style={{ margin: 0, fontSize: "16px", textAlign: "center" }}>
+            <h2 style={{ margin: 0, marginBottom: "12px", fontSize: "16px", textAlign: "center" }}>
               スケジュール登録
             </h2>
-            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
+            <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
               日付
               <input
                 type="date"
@@ -433,17 +437,18 @@ function App() {
                 onChange={(e) => setNewDate(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "6px",
-                  padding: "10px",
-                  borderRadius: "10px",
+                  marginTop: "4px",
+                  padding: "8px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
-                  boxSizing: "border-box"
+                  boxSizing: "border-box",
+                  fontSize: "14px"
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
+            <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
               タイトル
               <input
                 type="text"
@@ -451,17 +456,18 @@ function App() {
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "6px",
-                  padding: "10px",
-                  borderRadius: "10px",
+                  marginTop: "4px",
+                  padding: "8px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
-                  boxSizing: "border-box"
+                  boxSizing: "border-box",
+                  fontSize: "14px"
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px" }}>
+            <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
               時間
               <input
                 type="time"
@@ -469,27 +475,29 @@ function App() {
                 onChange={(e) => setTime(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: "6px",
-                  padding: "10px",
-                  borderRadius: "10px",
+                  marginTop: "4px",
+                  padding: "8px",
+                  borderRadius: "8px",
                   border: "1px solid #333",
                   background: "#121212",
                   color: "#fff",
-                  boxSizing: "border-box"
+                  boxSizing: "border-box",
+                  fontSize: "14px"
                 }}
               />
             </label>
-            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
               <button
                 onClick={() => setShowModal(false)}
                 style={{
                   flex: 1,
-                  padding: "14px",
+                  padding: "12px 8px",
                   background: "#666",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "10px",
-                  cursor: "pointer"
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px"
                 }}
               >
                 キャンセル
@@ -498,13 +506,14 @@ function App() {
                 onClick={handleRegisterSchedule}
                 style={{
                   flex: 1,
-                  padding: "14px",
+                  padding: "12px 8px",
                   background: "#4caf50",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "10px",
+                  borderRadius: "8px",
                   fontWeight: "bold",
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  fontSize: "14px"
                 }}
               >
                 登録
@@ -823,17 +832,6 @@ function App() {
                       }}
                     >
                       <div style={{ fontSize: "16px", fontWeight: "bold" }}>{date.getDate()}</div>
-                      {schedule && (
-                        <>
-                          <div style={{
-                            fontSize: "11px",
-                            fontWeight: "bold",
-                            color: schedule.status === "scheduled" ? "#0c8cf5" : "#ff1744"
-                          }}>
-                            {schedule.status === "scheduled" ? "実施" : "中止"}
-                          </div>
-                        </>
-                      )}
                     </div>
                   );
                 })}
