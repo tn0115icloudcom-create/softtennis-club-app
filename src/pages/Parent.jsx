@@ -44,6 +44,8 @@ function Parent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [remainings, setRemainings] = useState({});
   const [ticketsLoaded, setTicketsLoaded] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showModal, setShowModal] = useState(false); 
 
   //==============================
   // ログインユーザー取得
@@ -358,7 +360,15 @@ function Parent() {
                 );
 
                 return (
-                  <div key={date} style={{
+                  <div
+                    key={date}
+                    onClick={() => {
+                      if (schedule) {
+                        setSelectedSchedule(schedule);
+                        setShowModal(true);
+                      }
+                    }}
+                    style={{
                     padding: "10px",
                     textAlign: "center",
                     borderRadius: "8px",
@@ -369,10 +379,100 @@ function Parent() {
                         : "#222"
                   }}>
                     {date.getDate()}
+
+                    {/* モーダル */}
                   </div>
                 );
               })}
             </div>
+
+            {showModal && selectedSchedule && (
+              <div
+                onClick={() => setShowModal(false)}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.6)",
+                  zIndex: 1000
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "fixed",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "calc(100% - 24px)",
+                    maxWidth: "420px",
+                    background: "#1e1e1e",
+                    borderRadius: "16px",
+                    padding: "16px"
+                  }}
+                >
+
+                  {/* タイトル */}
+                  <div style={{
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    marginBottom: "10px",
+                    color: "#fff"
+                  }}>
+                    スケジュール詳細
+                  </div>
+
+                  {/* 日付 */}
+                  <div style={{ textAlign: "center", marginBottom: "8px", color: "#fff" }}>
+                    {selectedSchedule.date.toDate().toLocaleDateString()}（{getWeekday(selectedSchedule.date.toDate())}）
+                  </div>
+
+                  {/* タイトル */}
+                  <div style={{
+                    textAlign: "center",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    marginBottom: "6px",
+                    color: "#fff"
+                  }}>
+                    {selectedSchedule.title}
+                  </div>
+
+                  {/* 時間 */}
+                  <div style={{ textAlign: "center", color: "#ccc" }}>
+                    {selectedSchedule.start_time}
+                  </div>
+
+                  {/* 状態 */}
+                  <div style={{
+                    textAlign: "center",
+                    marginTop: "10px",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    color: selectedSchedule.status === "scheduled" ? "#00e676" : "#ff1744"
+                  }}>
+                    {selectedSchedule.status === "scheduled" ? "実施" : "中止"}
+                  </div>
+
+                  {/* 閉じる */}
+                  <button
+                    onClick={() => setShowModal(false)}
+                    style={{
+                      marginTop: "14px",
+                      width: "100%",
+                      padding: "10px",
+                      background: "#444",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "8px"
+                    }}
+                  >
+                    閉じる
+                  </button>
+
+                </div>
+              </div>
+            )}
 
           </div>
         );

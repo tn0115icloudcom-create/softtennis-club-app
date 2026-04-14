@@ -67,46 +67,95 @@ const redirectBasedOnRole = async (uid) => {
   };
 
   return (
-    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "420px", margin: "0 auto" }}>
-        <h1 style={{ textAlign: "center", marginBottom: "24px" }}>ログイン</h1>
+    <div style={{
+      minHeight: "100vh",
+      background: "#121212",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px"
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "420px",
+        background: "#1e1e1e",
+        padding: "24px",
+        borderRadius: "16px",
+        border: "1px solid #333"
+      }}>
 
+        {/* アプリ名 */}
+        <div style={{
+          textAlign: "center",
+          marginBottom: "10px"
+        }}>
+          <div style={{
+            fontSize: "30px",
+            fontWeight: "bold"
+          }}>
+            高橋キッズソフトテニスクラブ
+          </div>
+
+          <div style={{
+            fontSize: "13px",
+            color: "#aaa",
+            marginTop: "4px"
+          }}>
+            スケジュール確認アプリ
+          </div>
+        </div>
+
+        {/* タイトル */}
+        <h1 style={{
+          fontSize: "30px",
+          textAlign: "center",
+          marginBottom: "16px"
+        }}>
+          ログイン
+        </h1>
+
+        {/* サブ説明 */}
+        <p style={{
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: "14px",
+          marginBottom: "20px"
+        }}>
+          メールアドレスとパスワードを入力してください
+        </p>
+
+        {/* フォーム */}
         <form onSubmit={handleLogin} style={{ display: "grid", gap: "14px" }}>
-          <label style={{ display: "grid", gap: "6px", color: "#ddd" }}>
-            メールアドレス
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@example.com"
-              style={{
-                width: "calc(100% - 20px)",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #333",
-                background: "#121212",
-                color: "#fff"
-              }}
-            />
-          </label>
 
-          <label style={{ display: "grid", gap: "6px", color: "#ddd" }}>
-            パスワード
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワード"
-              style={{
-                width: "calc(100% - 20px)",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #333",
-                background: "#121212",
-                color: "#fff"
-              }}
-            />
-          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="メールアドレス"
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              background: "#121212",
+              color: "#fff"
+            }}
+          />
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="パスワード"
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              background: "#121212",
+              color: "#fff"
+            }}
+          />
 
           <button
             type="submit"
@@ -123,17 +172,8 @@ const redirectBasedOnRole = async (uid) => {
           >
             {loading ? "ログイン中..." : "ログイン"}
           </button>
+
         </form>
-
-        <p style={{ marginTop: "18px", color: "#888", fontSize: "14px" }}>
-          メールアドレスとパスワードでログインしてください。
-        </p>
-
-        <p style={{ marginTop: "20px" }}>
-          <button onClick={() => navigate("/register")}>
-            新規登録はこちら
-          </button>
-        </p>
 
       </div>
     </div>

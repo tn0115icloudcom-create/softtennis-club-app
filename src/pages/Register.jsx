@@ -71,27 +71,81 @@ function Register() {
   };
 
   return (
-    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "420px", margin: "0 auto" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#121212",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px"
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "420px",
+        background: "#1e1e1e",
+        padding: "24px",
+        borderRadius: "16px",
+        border: "1px solid #333"
+      }}>
 
-        <h1 style={{ textAlign: "center" }}>保護者登録</h1>
+        {/* アプリ名 */}
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+          <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+            高橋キッズソフトテニスクラブ
+          </div>
+          <div style={{ fontSize: "13px", color: "#aaa", marginTop: "4px" }}>
+            保護者アカウント登録
+          </div>
+        </div>
 
+        {/* タイトル */}
+        <h1 style={{
+          fontSize: "20px",
+          textAlign: "center",
+          marginBottom: "16px"
+        }}>
+          新規登録
+        </h1>
+
+        {/* 説明 */}
+        <p style={{
+          textAlign: "center",
+          color: "#aaa",
+          fontSize: "14px",
+          marginBottom: "20px"
+        }}>
+          パスワードは6～10文字で設定してください。
+        </p>
+
+        {/* フォーム */}
         <form onSubmit={handleRegister} style={{ display: "grid", gap: "14px" }}>
 
           <input
             type="email"
-            placeholder="メールアドレス"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={{ padding: "12px", borderRadius: "8px" }}
+            placeholder="メールアドレス"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              background: "#121212",
+              color: "#fff"
+            }}
           />
 
           <input
             type="password"
-            placeholder="パスワード"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ padding: "12px", borderRadius: "8px" }}
+            placeholder="パスワード"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #333",
+              background: "#121212",
+              color: "#fff"
+            }}
           />
 
           <button
@@ -99,16 +153,19 @@ function Register() {
             disabled={loading}
             style={{
               padding: "14px",
-              background: "#4caf50",
-              color: "#fff",
+              borderRadius: "8px",
               border: "none",
-              borderRadius: "8px"
+              background: "#2196f3",
+              color: "#fff",
+              fontWeight: "bold",
+              cursor: loading ? "not-allowed" : "pointer"
             }}
           >
-            {loading ? "登録中..." : "登録"}
+            {loading ? "登録中..." : "登録する"}
           </button>
 
         </form>
+
       </div>
     </div>
   );
