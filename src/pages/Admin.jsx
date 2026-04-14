@@ -445,7 +445,7 @@ function App() {
                   background: "#121212",
                   color: "#fff",
                   boxSizing: "border-box",
-                  fontSize: "14px"
+                  fontSize: "16px"
                 }}
               />
             </label>
@@ -464,7 +464,7 @@ function App() {
                   background: "#121212",
                   color: "#fff",
                   boxSizing: "border-box",
-                  fontSize: "14px"
+                  fontSize: "20px"
                 }}
               />
             </label>
@@ -483,7 +483,7 @@ function App() {
                   background: "#121212",
                   color: "#fff",
                   boxSizing: "border-box",
-                  fontSize: "14px"
+                  fontSize: "16px"
                 }}
               />
             </label>
