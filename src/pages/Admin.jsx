@@ -414,10 +414,11 @@ function App() {
             style={{
             position: "fixed",
             bottom: "10px",
-            left: "4px",
-            right: "4px",
-            maxWidth: "480px",
-            margin: "0 auto",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "calc(100% - 20px)"
+            maxWidth: "420px",
+
             background: "#1e1e1e",
             borderRadius: "16px",
             padding: "10px",
