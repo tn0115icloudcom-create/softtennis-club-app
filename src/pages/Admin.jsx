@@ -416,7 +416,7 @@ function App() {
             bottom: "10px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "calc(100% - 20px)",
+            width: "calc(100% - 40px)",
             maxWidth: "420px",
 
             background: "#1e1e1e",
@@ -437,7 +437,7 @@ function App() {
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
                 style={{
-                  width: "100%",
+                  width: "calc(100% - 40px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
@@ -456,7 +456,7 @@ function App() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
-                  width: "100%",
+                  width: "calc(100% - 40px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
@@ -475,7 +475,7 @@ function App() {
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 style={{
-                  width: "100%",
+                  width: "calc(100% - 40px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
