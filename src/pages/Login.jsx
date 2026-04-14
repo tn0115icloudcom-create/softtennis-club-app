@@ -80,7 +80,7 @@ const redirectBasedOnRole = async (uid) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@example.com"
               style={{
-                width: "100%",
+                width: "calc(100% - 20px)",
                 padding: "12px",
                 borderRadius: "8px",
                 border: "1px solid #333",
@@ -98,7 +98,7 @@ const redirectBasedOnRole = async (uid) => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="パスワード"
               style={{
-                width: "100%",
+                width: "calc(100% - 20px)",
                 padding: "12px",
                 borderRadius: "8px",
                 border: "1px solid #333",

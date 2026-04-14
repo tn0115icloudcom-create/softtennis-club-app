@@ -427,7 +427,7 @@ function App() {
             maxHeight: "80vh",
             overflowY: "auto"
           }}>
-            <h2 style={{ margin: 0, marginBottom: "12px", fontSize: "16px", textAlign: "center" }}>
+            <h2 style={{ margin: 0, marginBottom: "12px", fontSize: "16px", textAlign: "center", color: "#fff" }}>
               スケジュール登録
             </h2>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
@@ -437,7 +437,26 @@ function App() {
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
                 style={{
-                  width: "calc(100% - 40px)",
+                  width: "calc(100% - 20px)",
+                  marginTop: "4px",
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: "1px solid #333",
+                  background: "#121212",
+                  color: "#fff",
+                  boxSizing: "border-box",
+                  fontSize: "16px"
+                }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
+              開始時間
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                style={{
+                  width: "calc(100% - 20px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
@@ -456,7 +475,7 @@ function App() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
-                  width: "calc(100% - 40px)",
+                  width: "calc(100% - 20px)",
                   marginTop: "4px",
                   padding: "8px",
                   borderRadius: "8px",
@@ -468,41 +487,7 @@ function App() {
                 }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
-              開始時間
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                style={{
-                  width: "calc(100% - 40px)",
-                  marginTop: "4px",
-                  padding: "8px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff",
-                  boxSizing: "border-box",
-                  fontSize: "16px"
-                }}
-              />
-            </label>
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{
-                  flex: 1,
-                  padding: "12px 8px",
-                  background: "#666",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "14px"
-                }}
-              >
-                キャンセル
-              </button>
               <button
                 onClick={handleRegisterSchedule}
                 style={{
@@ -518,6 +503,21 @@ function App() {
                 }}
               >
                 登録
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  flex: 1,
+                  padding: "12px 8px",
+                  background: "#666",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px"
+                }}
+              >
+                キャンセル
               </button>
             </div>
           </div>
