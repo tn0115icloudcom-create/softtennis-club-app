@@ -3,6 +3,11 @@ import { db } from "../firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useParams, useNavigate } from "react-router-dom";
 
+const getStatusLabel = (status) => {
+  if (status === "present") return "参加";
+  return status;
+};
+
 function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -114,7 +119,13 @@ function StudentDetail() {
 
       {/* 参加履歴 */}
       <div>
-        <h2 style={{ marginBottom: "10px" }}>参加履歴</h2>
+        <h2 style={{
+          marginBottom: "10px",
+          color: "#fff",
+          fontSize: "22px"
+        }}>
+          参加履歴
+        </h2>
 
         {attendance.length === 0 && (
           <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
@@ -127,7 +138,7 @@ function StudentDetail() {
             borderRadius: "10px",
             marginBottom: "8px"
           }}>
-            {a.date.toDate().toLocaleDateString()} - {a.status}
+            {a.date.toDate().toLocaleDateString()} - {getStatusLabel(a.status)}
           </div>
         ))}
       </div>

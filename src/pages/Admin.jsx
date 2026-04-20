@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase";
+import HeaderMenu from "../components/HeaderMenu";
 import {
   collection,
   getDocs,
@@ -49,6 +50,13 @@ const inputStyle = {
   boxSizing: "border-box"
 };
 
+const menuItemStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #333",
+  cursor: "pointer",
+  color: "#fff"
+};
+
 // カレンダー生成
 const generateCalendar = (year, month) => {
   const days = [];
@@ -80,13 +88,10 @@ function App() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newScheduleTime, setNewScheduleTime] = useState("18:00");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [newDate, setNewDate] = useState(getJSTDate(new Date()));
   const [title, setTitle] = useState("練習");
   const [time, setTime] = useState("19:00");
-  const menuButtonRef = useRef(null);
-  const menuRef = useRef(null);
 
   //==============================
   // 認証チェック（ログイン必須）
@@ -161,7 +166,7 @@ function App() {
       status: "scheduled"
     });
 
-    setShowModal(false);
+    setShowScheduleModal(false);
     setNewDate(getJSTDate(new Date()));
     setTitle("練習");
     setTime("19:00");
@@ -191,23 +196,6 @@ function App() {
     setShowEditModal(false);
     setSelectedSchedule(null);
   };
-
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (!isMenuOpen) return;
-      if (
-        menuRef.current &&
-        menuButtonRef.current &&
-        !menuRef.current.contains(event.target) &&
-        !menuButtonRef.current.contains(event.target)
-      ) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isMenuOpen]);
 
   //==============================
   // 月変更処理
@@ -306,110 +294,32 @@ function App() {
           padding: "12px 16px",
           borderBottom: "1px solid #333",
         }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", position: "relative" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
           <h1 style={{
             color: "#fff",
-            fontSize: "clamp(16px, 5vw, 25px)", // ←自動調整
+            fontSize: "clamp(16px, 5vw, 25px)",
             margin: 0
           }}>
             高橋キッズソフトテニスクラブ
           </h1>
-          <button
-            ref={menuButtonRef}
-            onClick={() => setIsMenuOpen((prev) => !prev)}
-            style={{
-              width: "42px",
-              height: "42px",
-              background: "#444",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "20px",
-              cursor: "pointer"
-            }}
-            aria-label="メニュー"
-          >
-            ≡
-          </button>
-          {isMenuOpen && (
-            <div
-              ref={menuRef}
-              style={{
-                position: "absolute",
-                top: "calc(100% + 10px)",
-                right: 0,
-                background: "#1e1e1e",
-                border: "1px solid #333",
-                borderRadius: "10px",
-                minWidth: "160px",
-                boxShadow: "0 12px 24px rgba(0,0,0,0.25)",
-                zIndex: 1000,
-                padding: "8px"
-              }}
-            >
-              <button
-                onClick={() => {
-                  navigate("/students");
-                  setIsMenuOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  background: "#121212",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  textAlign: "left",
-                  marginBottom: "8px",
-                  cursor: "pointer"
-                }}
-              >
-                生徒一覧
-              </button>
-              <button
-                onClick={() => {
-                  setShowModal(true);
-                  setIsMenuOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  background: "#121212",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  textAlign: "left",
-                  marginBottom: "8px",
-                  cursor: "pointer"
-                }}
-              >
-                スケジュール登録
-              </button>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setIsMenuOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  background: "#121212",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "8px",
-                  textAlign: "left",
-                  cursor: "pointer"
-                }}
-              >
-                ログアウト
-              </button>
+          <HeaderMenu>
+            <div style={menuItemStyle} onClick={() => navigate("/students")}>
+              生徒一覧
             </div>
-          )}
+
+            <div style={menuItemStyle} onClick={() => setShowScheduleModal(true)}>
+              スケジュール登録
+            </div>
+
+            <div style={{ ...menuItemStyle, color: "#f44336" }} onClick={handleLogout}>
+              ログアウト
+            </div>
+          </HeaderMenu>
         </div>
       </div>
-      {showModal && (
+      {showScheduleModal && (
         <div
-          onClick={() => setShowModal(false)}
+          onClick={() => setShowScheduleModal(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -486,7 +396,7 @@ function App() {
                 登録
               </button>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowScheduleModal(false)}
                 style={{
                   flex: 1,
                   padding: "12px 8px",
@@ -649,11 +559,8 @@ function App() {
             color: "#fff",
             marginBottom: "10px"
           }}>
-            {todaySchedule
-              ? todaySchedule.date.toDate().toLocaleDateString() + "（" +
-                ["日","月","火","水","木","金","土"][todaySchedule.date.toDate().getDay()] + "）"
-              : "なし"
-            }
+            {new Date().toLocaleDateString() + "（" +
+              ["日","月","火","水","木","金","土"][new Date().getDay()] + "）"}
           </div>
 
           <div style={{
@@ -667,7 +574,7 @@ function App() {
           }}>
             {todaySchedule
               ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
-              : "なし"}
+              : "予定なし"}
           </div>
 
           <div style={{
@@ -677,7 +584,7 @@ function App() {
           }}>
             {todaySchedule
               ? `${todaySchedule.title || "-"}（${todaySchedule.start_time || "-"}）`
-              : ""
+              : "本日の予定はありません"
             }
           </div>
 

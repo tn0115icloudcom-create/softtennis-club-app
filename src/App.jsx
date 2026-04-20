@@ -8,6 +8,7 @@ import Parent from "./pages/Parent";
 import Students from "./pages/Students";
 import StudentDetail from "./pages/StudentDetail";
 import Register from "./pages/Register";
+import ParentHistory from "./pages/ParentHistory";
 
 function PrivateRoute({ children }) {
   const [isReady, setIsReady] = useState(false);
@@ -60,6 +61,9 @@ function App() {
 
         {/* 新規登録画面へ */}
         <Route path="/register" element={<Register />} />
+
+        {/* 保護者履歴画面へ */}
+        <Route path="/parent/history/:studentId" element={<ParentHistory />} />
       </Routes>
     </BrowserRouter>
   );

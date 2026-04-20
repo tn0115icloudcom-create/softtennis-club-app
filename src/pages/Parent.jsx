@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import HeaderMenu from "../components/HeaderMenu";
 
 //==============================
 // JST日付変換
@@ -34,6 +35,13 @@ const generateCalendar = (year, month) => {
   return days;
 };
 
+const menuItemStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #333",
+  cursor: "pointer",
+  color: "#fff"
+};
+
 function Parent() {
   const navigate = useNavigate();
 
@@ -45,14 +53,13 @@ function Parent() {
   const [remainings, setRemainings] = useState({});
   const [ticketsLoaded, setTicketsLoaded] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
-  const [showModal, setShowModal] = useState(false); 
+  const [showModal, setShowModal] = useState(false);
 
   //==============================
   // ログインユーザー取得
   //==============================
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
 
       const userRef = doc(db, "users", user.uid);
@@ -61,25 +68,26 @@ function Parent() {
       if (!userSnap.exists()) return;
 
       const userData = userSnap.data();
+      let studentIds = userData.student_ids || [];
 
-      // 配列対応（安全処理）
-      const ids = Array.isArray(userData.student_ids)
-        ? userData.student_ids
-        : [userData.student_ids];
-
-      // 生徒取得
-      const studentList = [];
-      for (const id of ids) {
-        const s = await getDoc(doc(db, "students", id));
-        if (s.exists()) {
-          studentList.push({ id, ...s.data() });
-        }
+      if (!Array.isArray(studentIds)) {
+        studentIds = [studentIds];
       }
 
-      setStudents(studentList);
-    };
+      // students取得
+      const snapshot = await getDocs(collection(db, "students"));
 
-    fetchUser();
+      const list = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(s => studentIds.includes(s.id));
+
+      setStudents(list);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   //==============================
@@ -156,35 +164,29 @@ function Parent() {
     navigate("/login");
   };
 
+  
   return (
     <div style={{ padding: "20px", background: "#121212", minHeight: "100vh", color: "#fff" }}>
-
-      {/* タイトルとログアウトが別 */}
       <div style={{
-        background: "#1e1e1e",
-        padding: "12px",
-        borderBottom: "1px solid #333"
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "10px"
       }}>
-        <h1 style={{
-          margin: 0,
-          fontSize: "clamp(18px, 5vw, 26px)"
-        }}>
-          保護者ページ
-        </h1>
+        <h1 style={{ margin: 0 }}>保護者ページ</h1>
+
+        <HeaderMenu>
+          <div style={menuItemStyle}>
+            マイページ
+          </div>
+
+          <div style={{ ...menuItemStyle, color: "#f44336" }} onClick={handleLogout}>
+            ログアウト
+          </div>
+        </HeaderMenu>
       </div>
 
-      <div style={{ textAlign: "right", marginTop: "10px" }}>
-        <button onClick={handleLogout} style={{
-          padding: "6px 12px",
-          background: "#444",
-          color: "#fff",
-          border: "none",
-          borderRadius: "6px"
-        }}>
-          ログアウト
-        </button>
-      </div>
-
+      {/* タイトルとメニュー */}
       {/* =========================
         今日の練習
       ========================= */}
@@ -206,9 +208,7 @@ function Parent() {
         </div>
 
         <div style={{ fontSize: "18px" }}>
-          {todaySchedule
-            ? todaySchedule.date.toDate().toLocaleDateString() + "（" + getWeekday(todaySchedule.date.toDate()) + "）"
-            : "なし"}
+          {new Date().toLocaleDateString() + "（" + getWeekday(new Date()) + "）"}
         </div>
 
         <div style={{
@@ -221,7 +221,7 @@ function Parent() {
         }}>
           {todaySchedule
             ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
-            : "なし"}
+            : "予定なし"}
         </div>
 
         {/* タイトル＋時間 */}
@@ -233,7 +233,7 @@ function Parent() {
         }}>
           {todaySchedule
             ? `${todaySchedule.title || "-"}（${todaySchedule.start_time || "-"}）`
-            : ""}
+            : "本日の予定はありません"}
         </div>
 
       </div>
@@ -242,15 +242,20 @@ function Parent() {
         生徒一覧
       ========================= */}
       {students.map(s => (
-        <div key={s.id} style={{
-          marginTop: "15px",
-          padding: "15px",
-          background: "#1e1e1e",
-          border: "1px solid #333",
-          borderRadius: "10px",
-          textAlign: "center",
-          fontWeight: "bold"
-        }}>
+        <div 
+          key={s.id} 
+          onClick={() => navigate(`/parent/history/${s.id}`)}
+          style={{
+            marginTop: "15px",
+            padding: "15px",
+            background: "#1e1e1e",
+            border: "1px solid #333",
+            borderRadius: "10px",
+            textAlign: "center",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
           {s.name}
           <div style={{ marginTop: "8px", fontSize: "14px", color: "#ccc", fontWeight: "normal" }}>
             回数券：{ticketsLoaded ? `残り ${remainings[s.id] ?? 0}枚` : "取得中"}
