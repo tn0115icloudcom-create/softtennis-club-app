@@ -90,7 +90,7 @@ const redirectBasedOnRole = async (uid) => {
           marginBottom: "10px"
         }}>
           <div style={{
-            fontSize: "30px",
+            fontSize: "25px",
             fontWeight: "bold"
           }}>
             高橋キッズソフトテニスクラブ
