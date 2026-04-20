@@ -43,7 +43,7 @@ function StudentDetail() {
 
       const snapshot = await getDocs(q);
 
-      const list = snapshot.docs.map(doc => ({
+      const list = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
       }));
@@ -61,14 +61,14 @@ function StudentDetail() {
 
   return (
     <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
-
       {/* ヘッダー */}
-      <div style={{
-        position: "relative",
-        marginBottom: "20px",
-        textAlign: "center"
-      }}>
-
+      <div
+        style={{
+          position: "relative",
+          marginBottom: "20px",
+          textAlign: "center"
+        }}
+      >
         {/* 戻るボタン（左上固定） */}
         <button
           onClick={() => navigate(-1)}
@@ -86,24 +86,27 @@ function StudentDetail() {
           戻る
         </button>
 
-         {/* タイトル */}
-        <h1 style={{
-          color: "#fff",
-          fontSize: "22px",
-          margin: 0
-        }}>
+        {/* タイトル */}
+        <h1
+          style={{
+            color: "#fff",
+            fontSize: "22px",
+            margin: 0
+          }}
+        >
           生徒詳細
         </h1>
-
       </div>
 
       {/* 生徒情報 */}
-      <div style={{
-        background: "#1e1e1e",
-        padding: "16px",
-        borderRadius: "12px",
-        marginBottom: "20px"
-      }}>
+      <div
+        style={{
+          background: "#1e1e1e",
+          padding: "16px",
+          borderRadius: "12px",
+          marginBottom: "20px"
+        }}
+      >
         <div style={{ fontSize: "20px", fontWeight: "bold", color: "#fff" }}>
           {student.name}
         </div>
@@ -117,13 +120,66 @@ function StudentDetail() {
         </div>
       </div>
 
+      <div
+        style={{
+          marginTop: "20px",
+          background: "#1e1e1e",
+          padding: "16px",
+          borderRadius: "12px"
+        }}
+      >
+        <div
+          style={{
+            fontSize: "14px",
+            color: "#aaa",
+            marginBottom: "10px"
+          }}
+        >
+          保護者アカウント作成用
+        </div>
+
+        <div
+          style={{
+            fontSize: "13px",
+            color: "#ccc",
+            marginBottom: "12px",
+            lineHeight: 1.6
+          }}
+        >
+          リンクを保護者の方に作成したURLを共有して下さい。
+        </div>
+
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}/register?studentId=${id}`;
+            navigator.clipboard.writeText(url);
+            alert("招待リンクを作成してコピーしました");
+          }}
+          style={{
+            width: "100%",
+            padding: "14px",
+            background: "#2196f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px",
+            fontWeight: "bold",
+            fontSize: "16px",
+            cursor: "pointer"
+          }}
+        >
+          招待リンク作成
+        </button>
+      </div>
+
       {/* 参加履歴 */}
       <div>
-        <h2 style={{
-          marginBottom: "10px",
-          color: "#fff",
-          fontSize: "22px"
-        }}>
+        <h2
+          style={{
+            marginBottom: "10px",
+            color: "#fff",
+            fontSize: "22px"
+          }}
+        >
           参加履歴
         </h2>
 
@@ -131,18 +187,20 @@ function StudentDetail() {
           <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
         )}
 
-        {attendance.map(a => (
-          <div key={a.id} style={{
-            background: "#1e1e1e",
-            padding: "12px",
-            borderRadius: "10px",
-            marginBottom: "8px"
-          }}>
+        {attendance.map((a) => (
+          <div
+            key={a.id}
+            style={{
+              background: "#1e1e1e",
+              padding: "12px",
+              borderRadius: "10px",
+              marginBottom: "8px"
+            }}
+          >
             {a.date.toDate().toLocaleDateString()} - {getStatusLabel(a.status)}
           </div>
         ))}
       </div>
-
     </div>
   );
 }
