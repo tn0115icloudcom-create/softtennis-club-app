@@ -4,6 +4,17 @@ import { auth, db } from "../firebase";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #333",
+  background: "#121212",
+  color: "#fff",
+  fontSize: "16px",
+  boxSizing: "border-box"
+};
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -90,7 +101,7 @@ const redirectBasedOnRole = async (uid) => {
           marginBottom: "10px"
         }}>
           <div style={{
-            fontSize: "25px",
+            fontSize: "20px",
             fontWeight: "bold"
           }}>
             高橋キッズソフトテニスクラブ
@@ -101,24 +112,16 @@ const redirectBasedOnRole = async (uid) => {
             color: "#aaa",
             marginTop: "4px"
           }}>
-            スケジュール確認アプリ
+            ［スケジュール確認アプリ］
           </div>
         </div>
 
-        {/* タイトル */}
-        <h1 style={{
-          fontSize: "30px",
-          textAlign: "center",
-          marginBottom: "16px"
-        }}>
-          ログイン
-        </h1>
 
         {/* サブ説明 */}
         <p style={{
           textAlign: "center",
           color: "#aaa",
-          fontSize: "14px",
+          fontSize: "10px",
           marginBottom: "20px"
         }}>
           メールアドレスとパスワードを入力してください
@@ -132,14 +135,7 @@ const redirectBasedOnRole = async (uid) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="メールアドレス"
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#121212",
-              color: "#fff"
-            }}
+            style={inputStyle}
           />
 
           <input
@@ -147,14 +143,7 @@ const redirectBasedOnRole = async (uid) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="パスワード"
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#121212",
-              color: "#fff"
-            }}
+            style={inputStyle}
           />
 
           <button

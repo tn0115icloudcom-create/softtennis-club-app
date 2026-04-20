@@ -38,6 +38,17 @@ const getWeekday = (date) => {
   return days[date.getDay()];
 };
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #333",
+  background: "#121212",
+  color: "#fff",
+  fontSize: "16px",
+  boxSizing: "border-box"
+};
+
 // カレンダー生成
 const generateCalendar = (year, month) => {
   const days = [];
@@ -436,17 +447,7 @@ function App() {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                style={{
-                  width: "calc(100% - 20px)",
-                  marginTop: "4px",
-                  padding: "8px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff",
-                  boxSizing: "border-box",
-                  fontSize: "16px"
-                }}
+                style={{ ...inputStyle, marginTop: "4px" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
@@ -455,17 +456,7 @@ function App() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                style={{
-                  width: "calc(100% - 20px)",
-                  marginTop: "4px",
-                  padding: "8px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff",
-                  boxSizing: "border-box",
-                  fontSize: "16px"
-                }}
+                style={{ ...inputStyle, marginTop: "4px" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
@@ -474,17 +465,7 @@ function App() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                style={{
-                  width: "calc(100% - 10px)",
-                  marginTop: "4px",
-                  padding: "8px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  background: "#121212",
-                  color: "#fff",
-                  boxSizing: "border-box",
-                  fontSize: "20px"
-                }}
+                style={{ ...inputStyle, marginTop: "4px" }}
               />
             </label>
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>

@@ -4,6 +4,17 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  borderRadius: "8px",
+  border: "1px solid #333",
+  background: "#121212",
+  color: "#fff",
+  fontSize: "16px",
+  boxSizing: "border-box"
+};
+
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -125,13 +136,7 @@ function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="メールアドレス"
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#121212",
-              color: "#fff"
-            }}
+            style={inputStyle}
           />
 
           <input
@@ -139,13 +144,7 @@ function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="パスワード"
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              background: "#121212",
-              color: "#fff"
-            }}
+            style={inputStyle}
           />
 
           <button
