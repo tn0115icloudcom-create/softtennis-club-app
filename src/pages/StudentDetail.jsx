@@ -14,6 +14,7 @@ function StudentDetail() {
 
   const [student, setStudent] = useState(null);
   const [attendance, setAttendance] = useState([]);
+  const [hasParent, setHasParent] = useState(false);
 
   //==============================
   // 生徒情報取得
@@ -29,6 +30,31 @@ function StudentDetail() {
     };
 
     fetchStudent();
+  }, [id]);
+
+  useEffect(() => {
+    const checkParent = async () => {
+      const snapshot = await getDocs(collection(db, "users"));
+
+      let found = false;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        let ids = data.student_ids || [];
+
+        if (!Array.isArray(ids)) {
+          ids = [ids];
+        }
+
+        if (ids.includes(id)) {
+          found = true;
+        }
+      });
+
+      setHasParent(found);
+    };
+
+    checkParent();
   }, [id]);
 
   //==============================
@@ -117,6 +143,19 @@ function StudentDetail() {
 
         <div style={{ marginTop: "8px", color: "#ccc" }}>
           備考：{student.note || "なし"}
+        </div>
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "10px",
+            borderRadius: "8px",
+            background: hasParent ? "#1b5e20" : "#5c0000",
+            color: "#fff",
+            fontWeight: "bold",
+            textAlign: "center"
+          }}
+        >
+          {hasParent ? "保護者登録済み" : "未登録"}
         </div>
       </div>
 

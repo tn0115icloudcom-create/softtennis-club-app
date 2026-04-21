@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const inputStyle = {
@@ -45,6 +45,30 @@ function Register() {
     setLoading(true);
 
     try {
+      // 既に登録されているかチェック
+      const usersSnapshot = await getDocs(collection(db, "users"));
+
+      let alreadyExists = false;
+
+      usersSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        let ids = data.student_ids || [];
+
+        if (!Array.isArray(ids)) {
+          ids = [ids];
+        }
+
+        if (ids.includes(urlStudentId)) {
+          alreadyExists = true;
+        }
+      });
+
+      if (alreadyExists) {
+        alert("この生徒は既に保護者登録されています");
+        setLoading(false);
+        return;
+      }
+
       //==============================
       // Firebase Authに登録
       //==============================
