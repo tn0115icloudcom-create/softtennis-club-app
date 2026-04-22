@@ -45,6 +45,7 @@ const menuItemStyle = {
 function Parent() {
   const navigate = useNavigate();
 
+  const [userData, setUserData] = useState({});
   const [students, setStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState(null);
@@ -67,8 +68,10 @@ function Parent() {
 
       if (!userSnap.exists()) return;
 
-      const userData = userSnap.data();
-      let studentIds = userData.student_ids || [];
+      const fetchedUserData = userSnap.data();
+      setUserData(fetchedUserData);
+
+      let studentIds = fetchedUserData.student_ids || [];
 
       if (!Array.isArray(studentIds)) {
         studentIds = [studentIds];
@@ -186,6 +189,29 @@ function Parent() {
         </HeaderMenu>
       </div>
 
+      {/* 保護者名表示 */}
+      <div style={{
+        background: "#1e1e1e",
+        padding: "14px 16px",
+        borderRadius: "12px",
+        marginBottom: "16px"
+      }}>
+        <div style={{
+          fontSize: "14px",
+          color: "#aaa"
+        }}>
+          保護者アカウント
+        </div>
+
+        <div style={{
+          fontSize: "18px",
+          fontWeight: "bold",
+          marginTop: "4px"
+        }}>
+          {(userData.name || userData.email || "保護者") + " さん"}
+        </div>
+      </div>
+
       {/* タイトルとメニュー */}
       {/* =========================
         今日の練習
@@ -241,27 +267,37 @@ function Parent() {
       {/* =========================
         生徒一覧
       ========================= */}
-      {students.map(s => (
-        <div 
-          key={s.id} 
-          onClick={() => navigate(`/parent/history/${s.id}`)}
-          style={{
-            marginTop: "15px",
-            padding: "15px",
-            background: "#1e1e1e",
-            border: "1px solid #333",
-            borderRadius: "10px",
-            textAlign: "center",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-        >
-          {s.name}
-          <div style={{ marginTop: "8px", fontSize: "14px", color: "#ccc", fontWeight: "normal" }}>
-            回数券：{ticketsLoaded ? `残り ${remainings[s.id] ?? 0}枚` : "取得中"}
+      <div style={{
+        marginTop: "20px",
+        marginBottom: "10px",
+        fontSize: "16px",
+        fontWeight: "bold"
+      }}>
+        対象生徒
+      </div>
+      <div style={{ marginBottom: "20px" }}>
+        {students.map(s => (
+          <div 
+            key={s.id} 
+            onClick={() => navigate(`/parent/history/${s.id}`)}
+            style={{
+              marginTop: "15px",
+              padding: "15px",
+              background: "#1e1e1e",
+              border: "1px solid #333",
+              borderRadius: "10px",
+              textAlign: "center",
+              fontWeight: "bold",
+              cursor: "pointer"
+            }}
+          >
+            {s.name}
+            <div style={{ marginTop: "8px", fontSize: "14px", color: "#ccc", fontWeight: "normal" }}>
+              回数券：{ticketsLoaded ? `残り ${remainings[s.id] ?? 0}枚` : "取得中"}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* =========================
         スケジュール

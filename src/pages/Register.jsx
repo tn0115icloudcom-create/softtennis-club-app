@@ -16,6 +16,7 @@ const inputStyle = {
 };
 
 function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,11 @@ function Register() {
     setLoading(true);
 
     try {
+      if (!name) {
+        alert("保護者名を入力してください");
+        setLoading(false);
+        return;
+      }
       // 既に登録されているかチェック
       const usersSnapshot = await getDocs(collection(db, "users"));
 
@@ -80,8 +86,10 @@ function Register() {
       //==============================
       console.log("Firestoreに保存するstudentId:", urlStudentId);
       await setDoc(doc(db, "users", user.uid), {
+        email,
         role: "parent",
-        student_ids: [urlStudentId] // URLから取得したstudentIdを配列で保存
+        student_ids: [urlStudentId], // URLから取得したstudentIdを配列で保存
+        name: name
       });
 
       alert("登録完了しました。ログインしました。");
@@ -160,6 +168,14 @@ function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="メールアドレス"
+            style={inputStyle}
+          />
+
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="例：山田 太郎"
             style={inputStyle}
           />
 
