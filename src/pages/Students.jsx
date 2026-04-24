@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, addDoc, query, where, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, where, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 //==============================
@@ -34,6 +34,11 @@ function Students() {
   const [schedules, setSchedules] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState(null);
   const [remainings, setRemainings] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newStudent, setNewStudent] = useState({ name: "", gender: "male" });
+  const [newGrade, setNewGrade] = useState("");
+  const [joinDate, setJoinDate] = useState("");
+  const [kana, setKana] = useState("");
   const navigate = useNavigate();
 
   //==============================
@@ -171,6 +176,45 @@ function Students() {
     alert("参加登録しました");
   };
 
+  //==============================
+  // 生徒追加処理
+  //==============================
+  const handleAddStudent = async (e) => {
+    e.preventDefault();
+    if (!newStudent.name.trim()) {
+      alert("名前を入力してください");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "students"), {
+        name: newStudent.name,
+        grade: newGrade ? Number(newGrade) : null,
+        gender: newStudent.gender,
+        kana: kana || "",
+        join_date: joinDate || null,
+        created_at: serverTimestamp()
+      });
+
+      // 生徒リスト更新
+      const snapshot = await getDocs(collection(db, "students"));
+      setStudents(snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })));
+
+      setIsModalOpen(false);
+      setNewStudent({ name: "", gender: "male" });
+      setNewGrade("");
+      setJoinDate("");
+      setKana("");
+      alert("生徒を追加しました");
+    } catch (error) {
+      console.error("追加エラー:", error);
+      alert("追加に失敗しました");
+    }
+  };
+
   return (
   <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
 
@@ -228,17 +272,20 @@ function Students() {
           }}>
 
             <div>
-              <span style={{ fontSize: "16px", color: "#aaa" }}>
-                {s.grade ? `${calculateGrade(s.grade)}年生` : "学年未設定"}
-              </span>
-              <span style={{
-                fontSize: "20px",
-                fontWeight: "bold",
-                marginLeft: "8px",
-                color: s.gender === "male" ? "#4fc3f7" : (s.gender === "female" ? "#f06292" : "#fff")
-              }}>
-                {s.name}
-              </span>
+              {/* ふりがな */}
+              <div style={{ fontSize: "12px", color: "#bbb" }}>
+                {s.kana || ""}
+              </div>
+
+              {/* 名前 + 学年 */}
+              <div style={{ fontSize: "18px", fontWeight: "bold" }}>
+                {s.grade ? `（${s.grade}年生） ` : "学年未設定 "}
+                <span style={{
+                  color: s.gender === "male" ? "#4fc3f7" : (s.gender === "female" ? "#f06292" : "#fff")
+                }}>
+                  {s.name}
+                </span>
+              </div>
             </div>
 
             <button
@@ -273,6 +320,202 @@ function Students() {
 
         </div>
       ))}
+
+      {/* FAB（フローティングアクションボタン） */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          width: "60px",
+          height: "60px",
+          borderRadius: "30px",
+          background: "#4CAF50",
+          color: "#fff",
+          border: "none",
+          fontSize: "32px",
+          cursor: "pointer",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}
+      >
+        +
+      </button>
+
+      {/* 登録モーダル（ボトムシート） */}
+      {isModalOpen && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          zIndex: 1001
+        }}>
+          <div style={{
+            background: "#1e1e1e",
+            width: "100%",
+            maxWidth: "500px",
+            borderRadius: "20px 20px 0 0",
+            padding: "24px",
+            maxHeight: "80vh",
+            overflowY: "auto"
+          }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px"
+            }}>
+              <h2 style={{ margin: 0, color: "#fff" }}>新規生徒追加</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#aaa",
+                  fontSize: "24px",
+                  cursor: "pointer"
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleAddStudent}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>名前 *</label>
+                <input
+                  type="text"
+                  value={newStudent.name}
+                  onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                  placeholder="生徒名"
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "#2a2a2a",
+                    border: "1px solid #444",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "16px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>ふりがな（任意）</label>
+                <input
+                  type="text"
+                  value={kana}
+                  onChange={(e) => setKana(e.target.value)}
+                  placeholder="ふりがな（任意）"
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "#2a2a2a",
+                    border: "1px solid #444",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "16px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>性別</label>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <label style={{ color: "#4fc3f7", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={newStudent.gender === "male"}
+                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value })}
+                    /> 男性
+                  </label>
+                  <label style={{ color: "#f06292", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={newStudent.gender === "female"}
+                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value })}
+                    /> 女性
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>学年</label>
+                <select
+                  value={newGrade}
+                  onChange={(e) => setNewGrade(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    marginTop: "10px",
+                    background: "#121212",
+                    color: "#fff",
+                    border: "1px solid #333",
+                    borderRadius: "8px"
+                  }}
+                >
+                  <option value="">学年選択</option>
+                  <option value="3">3年生</option>
+                  <option value="4">4年生</option>
+                  <option value="5">5年生</option>
+                  <option value="6">6年生</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>入会日</label>
+                <input
+                  type="date"
+                  value={joinDate}
+                  onChange={(e) => setJoinDate(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "#2a2a2a",
+                    border: "1px solid #444",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "16px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  background: "#4CAF50",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+              >
+                追加する
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
