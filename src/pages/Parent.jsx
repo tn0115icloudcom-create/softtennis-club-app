@@ -448,7 +448,8 @@ function Parent() {
                     maxWidth: "420px",
                     background: "#1e1e1e",
                     borderRadius: "16px",
-                    padding: "16px"
+                    padding: "20px 16px",
+                    boxSizing: "border-box"
                   }}
                 >
 

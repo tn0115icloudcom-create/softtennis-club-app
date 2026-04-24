@@ -365,7 +365,8 @@ function Students() {
             width: "100%",
             maxWidth: "500px",
             borderRadius: "20px 20px 0 0",
-            padding: "24px",
+            padding: "20px 16px",
+            boxSizing: "border-box",
             maxHeight: "80vh",
             overflowY: "auto"
           }}>
@@ -467,7 +468,8 @@ function Students() {
                     background: "#121212",
                     color: "#fff",
                     border: "1px solid #333",
-                    borderRadius: "8px"
+                    borderRadius: "8px",
+                    boxSizing: "border-box"
                   }}
                 >
                   <option value="">学年選択</option>

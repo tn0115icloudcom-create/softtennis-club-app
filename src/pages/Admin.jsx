@@ -342,7 +342,8 @@ function App() {
 
             background: "#1e1e1e",
             borderRadius: "16px",
-            padding: "10px",
+            padding: "20px 16px",
+            boxSizing: "border-box",
             boxShadow: "0 -4px 20px rgba(0,0,0,0.4)",
             zIndex: 1000,
             maxHeight: "80vh",
@@ -436,7 +437,8 @@ function App() {
 
               background: "#1e1e1e",
               borderRadius: "16px",
-              padding: "16px",
+              padding: "20px 16px",
+              boxSizing: "border-box",
               boxShadow: "0 -6px 20px rgba(0,0,0,0.4)"
             }}
           >

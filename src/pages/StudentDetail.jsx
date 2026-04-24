@@ -152,12 +152,12 @@ function StudentDetail() {
           textAlign: "center"
         }}
       >
-        {/* 戻るボタン（左上固定） */}
+        {/* 戻るボタン */}
         <button
           onClick={() => navigate(-1)}
           style={{
             position: "absolute",
-            right: "0",
+            left: "0",
             top: "0",
             background: "#444",
             color: "#fff",
@@ -185,7 +185,7 @@ function StudentDetail() {
           onClick={() => setShowEditModal(true)}
           style={{
             position: "absolute",
-            left: "0",
+            right: "0",
             top: "0",
             padding: "8px 12px",
             background: "#2196f3",
@@ -219,26 +219,12 @@ function StudentDetail() {
         </div>
 
         <div style={{ marginTop: "12px", color: "#ccc", fontSize: "14px" }}>
-          <div>入会日：{student.join_date || "-"}</div>
-          <div style={{ marginTop: "4px" }}>性別：{student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}</div>
-          <div style={{ marginTop: "4px" }}>備考：{student.note || "なし"}</div>
-        </div>
-
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "10px",
-            borderRadius: "8px",
-            background: hasParent ? "#1b5e20" : "#5c0000",
-            color: "#fff",
-            fontWeight: "bold",
-            textAlign: "center"
-          }}
-        >
-          {hasParent ? "保護者登録済み" : "未登録"}
+          <div>性別：{student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}</div>
+          {student.note && <div style={{ marginTop: "4px" }}>備考：{student.note}</div>}
         </div>
       </div>
 
+      {/* 保護者セクション */}
       <div
         style={{
           marginTop: "20px",
@@ -247,14 +233,20 @@ function StudentDetail() {
           borderRadius: "12px"
         }}
       >
+        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "12px" }}>保護者</div>
+
         <div
           style={{
-            fontSize: "14px",
-            color: "#aaa",
-            marginBottom: "10px"
+            padding: "10px",
+            borderRadius: "8px",
+            background: hasParent ? "#1b5e20" : "#5c0000",
+            color: "#fff",
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: "12px"
           }}
         >
-          保護者アカウント作成用
+          {hasParent ? "登録済み" : "未登録"}
         </div>
 
         <div
@@ -291,7 +283,14 @@ function StudentDetail() {
       </div>
 
       {/* 参加履歴 */}
-      <div>
+      <div
+        style={{
+          marginTop: "20px",
+          background: "#1e1e1e",
+          padding: "16px",
+          borderRadius: "12px"
+        }}
+      >
         <h2
           style={{
             marginBottom: "10px",
@@ -302,23 +301,25 @@ function StudentDetail() {
           参加履歴
         </h2>
 
-        {attendance.length === 0 && (
-          <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
-        )}
+        <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+          {attendance.length === 0 && (
+            <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
+          )}
 
-        {attendance.map((a) => (
-          <div
-            key={a.id}
-            style={{
-              background: "#1e1e1e",
-              padding: "12px",
-              borderRadius: "10px",
-              marginBottom: "8px"
-            }}
-          >
-            {a.date.toDate().toLocaleDateString()} - {getStatusLabel(a.status)}
-          </div>
-        ))}
+          {attendance.map((a) => (
+            <div
+              key={a.id}
+              style={{
+                background: "#2a2a2a",
+                padding: "12px",
+                borderRadius: "10px",
+                marginBottom: "8px"
+              }}
+            >
+              {a.date.toDate().toLocaleDateString()} - {getStatusLabel(a.status)}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 編集モーダル */}
@@ -342,7 +343,8 @@ function StudentDetail() {
               maxWidth: "420px",
               background: "#1e1e1e",
               borderRadius: "16px 16px 0 0",
-              padding: "20px",
+              padding: "20px 16px",
+              boxSizing: "border-box",
               maxHeight: "80vh",
               overflowY: "auto"
             }}
