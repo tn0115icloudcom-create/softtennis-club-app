@@ -20,9 +20,13 @@ const getJSTDate = (date) => {
 };
 
 const inputStyle = {
-  width: "100%",
+  display: "block",
+  width: "calc(100% - 24px)",
+  minWidth: 0,
   padding: "12px",
   marginTop: "12px",
+  marginLeft: "12px",
+  marginRight: "12px",
   background: "#121212",
   color: "#fff",
   border: "1px solid #333",
