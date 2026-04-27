@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { doc, getDoc, collection, getDocs, query, where, updateDoc } from "firebase/firestore";
-import { useParams, useNavigate } from "react-router-dom";
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import { useNavigate, useParams } from "react-router-dom";
 
 const getStatusLabel = (status) => {
   if (status === "present") return "参加";
   return status;
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px",
+  marginTop: "12px",
+  background: "#121212",
+  color: "#fff",
+  border: "1px solid #333",
+  borderRadius: "10px",
+  boxSizing: "border-box",
+  fontSize: "16px"
 };
 
 function StudentDetail() {
@@ -23,22 +35,20 @@ function StudentDetail() {
   const [editGender, setEditGender] = useState("");
   const [editNote, setEditNote] = useState("");
 
-  //==============================
-  // 生徒情報取得
-  //==============================
   useEffect(() => {
     const fetchStudent = async () => {
       const ref = doc(db, "students", id);
       const snap = await getDoc(ref);
 
       if (snap.exists()) {
-        setStudent(snap.data());
-        setEditName(snap.data().name || "");
-        setEditKana(snap.data().kana || "");
-        setEditGrade(snap.data().grade?.toString() || "");
-        setEditJoinDate(snap.data().join_date || "");
-        setEditGender(snap.data().gender || "");
-        setEditNote(snap.data().note || "");
+        const data = snap.data();
+        setStudent(data);
+        setEditName(data.name || "");
+        setEditKana(data.kana || "");
+        setEditGrade(data.grade?.toString() || "");
+        setEditJoinDate(data.join_date || "");
+        setEditGender(data.gender || "");
+        setEditNote(data.note || "");
       }
     };
 
@@ -50,9 +60,8 @@ function StudentDetail() {
       const snapshot = await getDocs(collection(db, "users"));
 
       let found = false;
-
-      snapshot.docs.forEach((doc) => {
-        const data = doc.data();
+      snapshot.docs.forEach((userDoc) => {
+        const data = userDoc.data();
         let ids = data.student_ids || [];
 
         if (!Array.isArray(ids)) {
@@ -70,35 +79,26 @@ function StudentDetail() {
     checkParent();
   }, [id]);
 
-  //==============================
-  // 参加履歴取得
-  //==============================
   useEffect(() => {
     const fetchAttendance = async () => {
-      const q = query(
+      const attendanceQuery = query(
         collection(db, "attendance"),
         where("student_id", "==", id)
       );
 
-      const snapshot = await getDocs(q);
-
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
+      const snapshot = await getDocs(attendanceQuery);
+      const list = snapshot.docs.map((attendanceDoc) => ({
+        id: attendanceDoc.id,
+        ...attendanceDoc.data()
       }));
 
-      // 日付降順
       list.sort((a, b) => b.date.toDate() - a.date.toDate());
-
       setAttendance(list);
     };
 
     fetchAttendance();
   }, [id]);
 
-  //==============================
-  // 生徒更新処理
-  //==============================
   const handleUpdateStudent = async () => {
     try {
       await updateDoc(doc(db, "students", id), {
@@ -110,7 +110,6 @@ function StudentDetail() {
         note: editNote
       });
 
-      // 生徒情報再取得
       const ref = doc(db, "students", id);
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -122,6 +121,13 @@ function StudentDetail() {
     } catch (error) {
       console.error("更新エラー:", error);
       alert("更新に失敗しました");
+    }
+  };
+
+  const handleCancel = () => {
+    const confirmClose = window.confirm("入力内容は破棄されます。よろしいですか？");
+    if (confirmClose) {
+      setShowEditModal(false);
     }
   };
 
@@ -144,7 +150,6 @@ function StudentDetail() {
 
   return (
     <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
-      {/* ヘッダー */}
       <div
         style={{
           position: "relative",
@@ -152,7 +157,6 @@ function StudentDetail() {
           textAlign: "center"
         }}
       >
-        {/* 戻るボタン */}
         <button
           onClick={() => navigate(-1)}
           style={{
@@ -169,7 +173,6 @@ function StudentDetail() {
           戻る
         </button>
 
-        {/* タイトル */}
         <h1
           style={{
             color: "#fff",
@@ -180,7 +183,6 @@ function StudentDetail() {
           生徒詳細
         </h1>
 
-        {/* 編集ボタン */}
         <button
           onClick={() => setShowEditModal(true)}
           style={{
@@ -200,7 +202,6 @@ function StudentDetail() {
         </button>
       </div>
 
-      {/* 生徒情報 */}
       <div
         style={{
           background: "#1e1e1e",
@@ -209,9 +210,7 @@ function StudentDetail() {
           marginBottom: "20px"
         }}
       >
-        <div style={{ fontSize: "14px", color: "#bbb" }}>
-          {student.kana || "ふりがな未設定"}
-        </div>
+        <div style={{ fontSize: "14px", color: "#bbb" }}>{student.kana || "ふりがな未設定"}</div>
 
         <div style={{ fontSize: "20px", fontWeight: "bold", color: "#fff", marginTop: "4px" }}>
           {student.grade ? `${student.grade}年生 ` : "学年未設定 "}
@@ -219,12 +218,11 @@ function StudentDetail() {
         </div>
 
         <div style={{ marginTop: "12px", color: "#ccc", fontSize: "14px" }}>
-          <div>性別：{student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}</div>
-          {student.note && <div style={{ marginTop: "4px" }}>備考：{student.note}</div>}
+          <div>性別: {student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}</div>
+          {student.note && <div style={{ marginTop: "4px" }}>備考: {student.note}</div>}
         </div>
       </div>
 
-      {/* 保護者セクション */}
       <div
         style={{
           marginTop: "20px",
@@ -233,7 +231,7 @@ function StudentDetail() {
           borderRadius: "12px"
         }}
       >
-        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "12px" }}>保護者</div>
+        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "12px" }}>保護者セクション</div>
 
         <div
           style={{
@@ -257,14 +255,14 @@ function StudentDetail() {
             lineHeight: 1.6
           }}
         >
-          リンクを保護者の方に作成したURLを共有して下さい。
+          リンクを保護者の方に共有すると、この生徒に紐づく登録ページを開けます。
         </div>
 
         <button
           onClick={() => {
             const url = `${window.location.origin}/register?studentId=${id}`;
             navigator.clipboard.writeText(url);
-            alert("招待リンクを作成してコピーしました");
+            alert("登録リンクをコピーしました");
           }}
           style={{
             width: "100%",
@@ -278,11 +276,10 @@ function StudentDetail() {
             cursor: "pointer"
           }}
         >
-          招待リンク作成
+          登録リンクをコピー
         </button>
       </div>
 
-      {/* 参加履歴 */}
       <div
         style={{
           marginTop: "20px",
@@ -302,13 +299,11 @@ function StudentDetail() {
         </h2>
 
         <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-          {attendance.length === 0 && (
-            <div style={{ color: "#888" }}>まだ参加履歴はありません</div>
-          )}
+          {attendance.length === 0 && <div style={{ color: "#888" }}>まだ参加履歴はありません</div>}
 
-          {attendance.map((a) => (
+          {attendance.map((item) => (
             <div
-              key={a.id}
+              key={item.id}
               style={{
                 background: "#2a2a2a",
                 padding: "12px",
@@ -316,16 +311,14 @@ function StudentDetail() {
                 marginBottom: "8px"
               }}
             >
-              {a.date.toDate().toLocaleDateString()} - {getStatusLabel(a.status)}
+              {item.date.toDate().toLocaleDateString()} - {getStatusLabel(item.status)}
             </div>
           ))}
         </div>
       </div>
 
-      {/* 編集モーダル */}
       {showEditModal && (
         <div
-          onClick={() => setShowEditModal(false)}
           style={{
             position: "fixed",
             inset: 0,
@@ -339,17 +332,18 @@ function StudentDetail() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "100%",
+              width: "92%",
               maxWidth: "420px",
+              margin: "0 auto",
               background: "#1e1e1e",
               borderRadius: "16px 16px 0 0",
-              padding: "20px 16px",
+              padding: "24px 16px",
               boxSizing: "border-box",
               maxHeight: "80vh",
               overflowY: "auto"
             }}
           >
-            <h2 style={{ textAlign: "center", color: "#fff", marginBottom: "20px" }}>生徒編集</h2>
+            <h2 style={{ textAlign: "center", color: "#fff", marginBottom: "20px" }}>生徒を編集</h2>
 
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>名前</label>
@@ -357,16 +351,7 @@ function StudentDetail() {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder="名前"
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box"
-                }}
+                style={inputStyle}
               />
             </div>
 
@@ -376,35 +361,13 @@ function StudentDetail() {
                 value={editKana}
                 onChange={(e) => setEditKana(e.target.value)}
                 placeholder="ふりがな"
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box"
-                }}
+                style={inputStyle}
               />
             </div>
 
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>学年</label>
-              <select
-                value={editGrade}
-                onChange={(e) => setEditGrade(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box"
-                }}
-              >
+              <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} style={inputStyle}>
                 <option value="">学年</option>
                 <option value="3">3年生</option>
                 <option value="4">4年生</option>
@@ -419,35 +382,13 @@ function StudentDetail() {
                 type="date"
                 value={editJoinDate}
                 onChange={(e) => setEditJoinDate(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box"
-                }}
+                style={inputStyle}
               />
             </div>
 
             <div style={{ marginBottom: "12px" }}>
               <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>性別</label>
-              <select
-                value={editGender}
-                onChange={(e) => setEditGender(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box"
-                }}
-              >
+              <select value={editGender} onChange={(e) => setEditGender(e.target.value)} style={inputStyle}>
                 <option value="">性別</option>
                 <option value="male">男性</option>
                 <option value="female">女性</option>
@@ -461,46 +402,46 @@ function StudentDetail() {
                 onChange={(e) => setEditNote(e.target.value)}
                 placeholder="備考"
                 style={{
-                  width: "100%",
-                  padding: "10px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  boxSizing: "border-box",
+                  ...inputStyle,
                   height: "80px",
                   resize: "none"
                 }}
               />
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "20px"
+              }}
+            >
               <button
                 onClick={handleUpdateStudent}
                 style={{
                   flex: 1,
-                  padding: "12px",
-                  background: "#4CAF50",
+                  padding: "14px",
+                  background: "#4caf50",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "8px",
-                  fontSize: "14px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
                   cursor: "pointer"
                 }}
               >
-                保存
+                更新する
               </button>
+
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={handleCancel}
                 style={{
                   flex: 1,
-                  padding: "12px",
-                  background: "#444",
+                  padding: "14px",
+                  background: "#555",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "8px",
-                  fontSize: "14px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
                   cursor: "pointer"
                 }}
               >
