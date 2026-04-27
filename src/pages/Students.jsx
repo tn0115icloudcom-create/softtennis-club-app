@@ -21,12 +21,11 @@ const getJSTDate = (date) => {
 
 const inputStyle = {
   display: "block",
-  width: "calc(100% - 24px)",
+  width: "100%",
+  maxWidth: "100%",
   minWidth: 0,
   padding: "12px",
   marginTop: "12px",
-  marginLeft: "5%",
-  marginRight: "5%",
   background: "#121212",
   color: "#fff",
   border: "1px solid #333",
@@ -380,7 +379,7 @@ function Students() {
               <h2 style={{ margin: 0, color: "#fff" }}>新規生徒を追加</h2>
             </div>
 
-            <form onSubmit={handleAddStudent}>
+            <form onSubmit={handleAddStudent} style={{ padding: "0 12px", boxSizing: "border-box" }}>
               <div style={{ marginBottom: "16px" }}>
                 <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>名前 *</label>
                 <input
