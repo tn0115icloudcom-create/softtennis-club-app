@@ -373,7 +373,7 @@ function App() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                style={{ ...inputStyle, marginTop: "4px" }}
+                style={{ ...dateInputStyle, marginTop: "4px" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
