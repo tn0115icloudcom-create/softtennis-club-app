@@ -56,6 +56,12 @@ const dateInputStyle = {
   maxWidth: "calc(100% - 24px)"
 };
 
+const timeInputStyle = {
+  ...inputStyle,
+  width: "calc(100% - 24px)",
+  maxWidth: "calc(100% - 24px)"
+};
+
 const menuItemStyle = {
   padding: "12px",
   borderBottom: "1px solid #333",
@@ -373,7 +379,7 @@ function App() {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                style={{ ...dateInputStyle, marginTop: "4px" }}
+                style={{ ...timeInputStyle, marginTop: "4px" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>
