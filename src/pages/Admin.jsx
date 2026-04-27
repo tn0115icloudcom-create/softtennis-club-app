@@ -50,6 +50,12 @@ const inputStyle = {
   boxSizing: "border-box"
 };
 
+const dateInputStyle = {
+  ...inputStyle,
+  width: "calc(100% - 24px)",
+  maxWidth: "calc(100% - 24px)"
+};
+
 const menuItemStyle = {
   padding: "12px",
   borderBottom: "1px solid #333",
@@ -358,7 +364,7 @@ function App() {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                style={{ ...inputStyle, marginTop: "4px" }}
+                style={{ ...dateInputStyle, marginTop: "4px" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "10px", fontSize: "13px" }}>

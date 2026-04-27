@@ -20,6 +20,12 @@ const inputStyle = {
   fontSize: "16px"
 };
 
+const dateInputStyle = {
+  ...inputStyle,
+  width: "calc(100% - 24px)",
+  maxWidth: "calc(100% - 24px)"
+};
+
 function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -382,7 +388,7 @@ function StudentDetail() {
                 type="date"
                 value={editJoinDate}
                 onChange={(e) => setEditJoinDate(e.target.value)}
-                style={inputStyle}
+                style={dateInputStyle}
               />
             </div>
 
