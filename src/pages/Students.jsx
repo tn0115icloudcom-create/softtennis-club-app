@@ -34,6 +34,12 @@ const inputStyle = {
   fontSize: "16px"
 };
 
+const dateInputStyle = {
+  ...inputStyle,
+  width: "calc(100% - 24px)",
+  maxWidth: "calc(100% - 24px)"
+};
+
 function Students() {
   const [students, setStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
@@ -441,7 +447,12 @@ function Students() {
 
               <div style={{ marginBottom: "16px" }}>
                 <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>入会日</label>
-                <input type="date" value={joinDate} onChange={(e) => setJoinDate(e.target.value)} style={inputStyle} />
+                <input
+                  type="date"
+                  value={joinDate}
+                  onChange={(e) => setJoinDate(e.target.value)}
+                  style={dateInputStyle}
+                />
               </div>
 
               <div
