@@ -262,7 +262,11 @@ function Admin() {
             }}
           >
             <div style={{ fontSize: "24px", marginBottom: "8px" }}>📢</div>
-            <div style={{ fontSize: "12px", fontWeight: "bold", lineHeight: 1.4 }}>お知らせ</div>
+            <div style={{ fontSize: "12px", fontWeight: "bold", lineHeight: 1.4 }}>
+              お知らせ
+              <br />
+              登録
+            </div>
           </button>
           <button
             onClick={() => setShowScheduleModal(true)}

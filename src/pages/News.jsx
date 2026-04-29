@@ -25,7 +25,13 @@ const formatPublishedAt = (publishedAt) => {
     return "-";
   }
 
-  return publishedAt.toDate().toLocaleDateString("ja-JP");
+  return publishedAt.toDate().toLocaleString("ja-JP", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 };
 
 function News() {
@@ -47,7 +53,9 @@ function News() {
           ...noticeDoc.data()
         }));
 
-        fetchedNotices.sort((a, b) => getPublishedTime(b.published_at) - getPublishedTime(a.published_at));
+        fetchedNotices.sort(
+          (a, b) => getPublishedTime(b.published_at) - getPublishedTime(a.published_at)
+        );
         setNotices(fetchedNotices);
       } catch (error) {
         console.error("Failed to fetch notices:", error);
@@ -74,7 +82,7 @@ function News() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: "flex-start",
           gap: "12px",
           marginBottom: "20px"
         }}
@@ -96,7 +104,8 @@ function News() {
             fontSize: "14px",
             fontWeight: "bold",
             cursor: "pointer",
-            boxShadow: shadowStyle
+            boxShadow: shadowStyle,
+            flexShrink: 0
           }}
         >
           戻る
@@ -143,7 +152,8 @@ function News() {
                   background: theme.card,
                   borderRadius: "16px",
                   padding: "20px",
-                  boxShadow: shadowStyle
+                  boxShadow: shadowStyle,
+                  textAlign: "left"
                 }}
               >
                 <div
@@ -162,24 +172,49 @@ function News() {
                   {config.label}
                 </div>
 
-                <div style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "12px" }}>
-                  {notice.title || "無題"}
+                <div
+                  style={{
+                    border: "1px solid " + theme.border,
+                    borderRadius: "12px",
+                    padding: "14px 16px",
+                    marginBottom: "12px",
+                    background: "#ffffff"
+                  }}
+                >
+                  <div style={{ fontSize: "13px", color: theme.subText, marginBottom: "6px" }}>
+                    タイトル
+                  </div>
+                  <div style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {notice.title || "無題"}
+                  </div>
                 </div>
 
                 <div
                   style={{
-                    fontSize: "15px",
-                    lineHeight: 1.7,
-                    color: theme.text,
-                    whiteSpace: "pre-wrap",
-                    marginBottom: "16px"
+                    border: "1px solid " + theme.border,
+                    borderRadius: "12px",
+                    padding: "14px 16px",
+                    marginBottom: "16px",
+                    background: "#ffffff"
                   }}
                 >
-                  {notice.body || ""}
+                  <div style={{ fontSize: "13px", color: theme.subText, marginBottom: "6px" }}>
+                    本文
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "15px",
+                      lineHeight: 1.7,
+                      color: theme.text,
+                      whiteSpace: "pre-wrap"
+                    }}
+                  >
+                    {notice.body || ""}
+                  </div>
                 </div>
 
                 <div style={{ fontSize: "13px", color: theme.subText }}>
-                  投稿日: {formatPublishedAt(notice.published_at)}
+                  投稿日時: {formatPublishedAt(notice.published_at)}
                 </div>
               </article>
             );

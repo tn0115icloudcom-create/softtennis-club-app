@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { theme } from "../styles/theme";
@@ -63,11 +63,14 @@ function AdminSchedule() {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [newScheduleTitle, setNewScheduleTitle] = useState("");
   const [newScheduleTime, setNewScheduleTime] = useState("18:00");
   const [newDate, setNewDate] = useState(getJSTDate(new Date()));
   const [title, setTitle] = useState("練習");
   const [time, setTime] = useState("19:00");
+  const [noticeTitle, setNoticeTitle] = useState("練習中止のお知らせ");
+  const [noticeBody, setNoticeBody] = useState("");
 
   const fetchSchedules = async () => {
     const snapshot = await getDocs(collection(db, "schedules"));
@@ -104,6 +107,19 @@ function AdminSchedule() {
   const openScheduleEditor = (schedule) => {
     setSelectedSchedule(schedule);
     setShowEditModal(true);
+  };
+
+  const buildCancelNoticeBody = (schedule) => {
+    if (!schedule?.date) {
+      return "練習は中止になりました。";
+    }
+
+    const scheduleDate = schedule.date.toDate();
+    const monthNumber = scheduleDate.getMonth() + 1;
+    const dayNumber = scheduleDate.getDate();
+    const weekday = getWeekday(scheduleDate);
+
+    return `${monthNumber}月${dayNumber}日（${weekday}）の練習は中止になりました。`;
   };
 
   const handleRegisterSchedule = async () => {
@@ -164,6 +180,52 @@ function AdminSchedule() {
     setSelectedSchedule(null);
   };
 
+  const handlePostCancelNotice = async () => {
+    if (!noticeTitle.trim() || !noticeBody.trim()) {
+      alert("タイトルと本文を入力してください");
+      return;
+    }
+
+    await addDoc(collection(db, "notices"), {
+      title: noticeTitle.trim(),
+      body: noticeBody.trim(),
+      type: "cancel",
+      target: "all",
+      is_published: true,
+      created_at: serverTimestamp(),
+      published_at: serverTimestamp()
+    });
+
+    setShowNoticeModal(false);
+    setNoticeTitle("練習中止のお知らせ");
+    setNoticeBody("");
+    alert("お知らせを投稿しました");
+  };
+
+  const handleCancelScheduleWithNotice = async (schedule, closeEditModal = false) => {
+    if (!schedule) return;
+    if (!window.confirm("この予定を中止にしますか？")) return;
+
+    await updateDoc(doc(db, "schedules", schedule.id), {
+      status: "cancelled"
+    });
+
+    await fetchSchedules();
+
+    if (closeEditModal) {
+      setShowEditModal(false);
+      setSelectedSchedule(null);
+    }
+
+    if (!window.confirm("保護者へお知らせを投稿しますか？")) {
+      return;
+    }
+
+    setNoticeTitle("練習中止のお知らせ");
+    setNoticeBody(buildCancelNoticeBody(schedule));
+    setShowNoticeModal(true);
+  };
+
   const handleDeleteSelectedSchedule = async () => {
     if (!selectedSchedule) return;
     if (!window.confirm("このスケジュールを削除しますか？")) return;
@@ -180,10 +242,16 @@ function AdminSchedule() {
     fetchSchedules();
   };
 
-  const handleToggleStatus = async (scheduleId, currentStatus) => {
-    const newStatus = currentStatus === "scheduled" ? "cancelled" : "scheduled";
-    await updateDoc(doc(db, "schedules", scheduleId), {
-      status: newStatus
+  const handleToggleStatus = async (schedule) => {
+    if (!schedule) return;
+
+    if (schedule.status === "scheduled") {
+      await handleCancelScheduleWithNotice(schedule);
+      return;
+    }
+
+    await updateDoc(doc(db, "schedules", schedule.id), {
+      status: "scheduled"
     });
     fetchSchedules();
   };
@@ -419,7 +487,7 @@ function AdminSchedule() {
                     詳細
                   </button>
                   <button
-                    onClick={() => handleToggleStatus(item.id, item.status)}
+                    onClick={() => handleToggleStatus(item)}
                     style={{
                       padding: "10px 14px",
                       borderRadius: "10px",
@@ -759,6 +827,103 @@ function AdminSchedule() {
         </div>
       )}
 
+      {showNoticeModal && (
+        <div
+          onClick={() => setShowNoticeModal(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+            boxSizing: "border-box",
+            zIndex: 1000
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "420px",
+              background: theme.card,
+              borderRadius: "16px",
+              padding: "20px",
+              boxSizing: "border-box",
+              boxShadow: shadowStyle
+            }}
+          >
+            <h2 style={{ margin: 0, marginBottom: "12px", fontSize: "18px", color: theme.text }}>
+              お知らせ内容の確認
+            </h2>
+            <div style={{ fontSize: "13px", color: theme.subText, marginBottom: "16px" }}>
+              投稿前にタイトルと本文を確認してください
+            </div>
+
+            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px", color: theme.text }}>
+              タイトル
+              <input
+                type="text"
+                value={noticeTitle}
+                onChange={(e) => setNoticeTitle(e.target.value)}
+                style={{ ...inputStyle, marginTop: "4px" }}
+              />
+            </label>
+
+            <label style={{ display: "block", marginBottom: "12px", fontSize: "13px", color: theme.text }}>
+              本文
+              <textarea
+                value={noticeBody}
+                onChange={(e) => setNoticeBody(e.target.value)}
+                style={{
+                  ...inputStyle,
+                  marginTop: "4px",
+                  minHeight: "140px",
+                  resize: "vertical",
+                  fontFamily: "inherit"
+                }}
+              />
+            </label>
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+              <button
+                onClick={handlePostCancelNotice}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  border: "none",
+                  borderRadius: "12px",
+                  background: theme.primary,
+                  color: "#fff",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                投稿する
+              </button>
+              <button
+                onClick={() => setShowNoticeModal(false)}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  border: "none",
+                  borderRadius: "12px",
+                  background: theme.subText,
+                  color: "#fff",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showEditModal && selectedSchedule && (
         <div
           onClick={() => setShowEditModal(false)}
@@ -817,10 +982,9 @@ function AdminSchedule() {
             <div style={{ display: "grid", gap: "10px", marginTop: "18px" }}>
               <button
                 onClick={() =>
-                  handleChangeScheduleStatus(
-                    selectedSchedule.id,
-                    selectedSchedule.status === "scheduled" ? "cancelled" : "scheduled"
-                  )
+                  selectedSchedule.status === "scheduled"
+                    ? handleCancelScheduleWithNotice(selectedSchedule, true)
+                    : handleChangeScheduleStatus(selectedSchedule.id, "scheduled")
                 }
                 style={{
                   padding: "12px",
