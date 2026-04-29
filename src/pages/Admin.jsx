@@ -40,7 +40,7 @@ const timeInputStyle = {
   maxWidth: "calc(100% - 24px)"
 };
 
-const shadowStyle = "0 10px 24px rgba(15, 23, 42, 0.08)";
+const shadowStyle = "0 16px 32px rgba(15, 23, 42, 0.16)";
 
 function Admin() {
   const navigate = useNavigate();
@@ -257,10 +257,12 @@ function Admin() {
               fontSize: "16px",
               fontWeight: "bold",
               cursor: "pointer",
-              boxShadow: shadowStyle
+              boxShadow: shadowStyle,
+              transform: "translateY(-2px)"
             }}
           >
-            📢 お知らせ
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>📢</div>
+            <div style={{ fontSize: "12px", fontWeight: "bold", lineHeight: 1.4 }}>お知らせ</div>
           </button>
           <button
             onClick={() => setShowScheduleModal(true)}
@@ -273,10 +275,16 @@ function Admin() {
               fontSize: "16px",
               fontWeight: "bold",
               cursor: "pointer",
-              boxShadow: shadowStyle
+              boxShadow: shadowStyle,
+              transform: "translateY(-2px)"
             }}
           >
-            ➕ スケジュール登録
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>📅</div>
+            <div style={{ fontSize: "12px", fontWeight: "bold", lineHeight: 1.4 }}>
+              スケジュール
+              <br />
+              登録
+            </div>
           </button>
           <button
             onClick={() => navigate("/students", { state: { openAddStudent: true } })}
@@ -289,10 +297,16 @@ function Admin() {
               fontSize: "16px",
               fontWeight: "bold",
               cursor: "pointer",
-              boxShadow: shadowStyle
+              boxShadow: shadowStyle,
+              transform: "translateY(-2px)"
             }}
           >
-            👤 生徒追加
+            <div style={{ fontSize: "24px", marginBottom: "8px" }}>👤</div>
+            <div style={{ fontSize: "12px", fontWeight: "bold", lineHeight: 1.4 }}>
+              新規
+              <br />
+              生徒追加
+            </div>
           </button>
         </div>
       </div>
@@ -305,63 +319,47 @@ function Admin() {
           marginBottom: "28px"
         }}
       >
-        <div
+        <button
+          onClick={() => navigate("/students")}
           style={{
             background: theme.card,
             borderRadius: "16px",
             padding: "20px",
-            boxShadow: shadowStyle
+            boxShadow: shadowStyle,
+            border: "none",
+            textAlign: "left",
+            cursor: "pointer",
+            transform: "translateY(-2px)"
           }}
         >
-          <div style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "8px" }}>生徒管理</div>
-          <div style={{ fontSize: "16px", color: theme.subText, marginBottom: "16px" }}>
+          <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px", color: theme.text }}>
+            生徒管理
+          </div>
+          <div style={{ fontSize: "12px", color: theme.subText }}>
             生徒情報・参加履歴を管理
           </div>
-          <button
-            onClick={() => navigate("/students")}
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              border: "1px solid " + theme.border,
-              background: theme.background,
-              color: theme.text,
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: "pointer"
-            }}
-          >
-            生徒一覧へ
-          </button>
-        </div>
+        </button>
 
-        <div
+        <button
+          onClick={() => navigate("/admin/schedule")}
           style={{
             background: theme.card,
             borderRadius: "16px",
             padding: "20px",
-            boxShadow: shadowStyle
+            boxShadow: shadowStyle,
+            border: "none",
+            textAlign: "left",
+            cursor: "pointer",
+            transform: "translateY(-2px)"
           }}
         >
-          <div style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "8px" }}>スケジュール管理</div>
-          <div style={{ fontSize: "16px", color: theme.subText, marginBottom: "16px" }}>
+          <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px", color: theme.text }}>
+            スケジュール管理
+          </div>
+          <div style={{ fontSize: "12px", color: theme.subText }}>
             予定の登録・編集
           </div>
-          <button
-            onClick={() => navigate("/admin/schedule")}
-            style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
-              border: "1px solid " + theme.border,
-              background: theme.background,
-              color: theme.text,
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: "pointer"
-            }}
-          >
-            スケジュール管理へ
-          </button>
-        </div>
+        </button>
       </div>
 
       {showScheduleModal && (

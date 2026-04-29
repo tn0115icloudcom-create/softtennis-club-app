@@ -3,14 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { theme } from "../styles/theme";
 
 const inputStyle = {
   width: "100%",
-  padding: "10px",
-  borderRadius: "8px",
-  border: "1px solid #333",
-  background: "#121212",
-  color: "#fff",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid " + theme.border,
+  background: "#ffffff",
+  color: theme.text,
   fontSize: "16px",
   boxSizing: "border-box"
 };
@@ -80,7 +81,7 @@ const redirectBasedOnRole = async (uid) => {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#121212",
+      background: theme.background,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -89,10 +90,11 @@ const redirectBasedOnRole = async (uid) => {
       <div style={{
         width: "100%",
         maxWidth: "420px",
-        background: "#1e1e1e",
+        background: theme.card,
         padding: "24px",
         borderRadius: "16px",
-        border: "1px solid #333"
+        border: "1px solid " + theme.border,
+        boxShadow: "0 16px 32px rgba(15, 23, 42, 0.12)"
       }}>
 
         {/* アプリ名 */}
@@ -102,14 +104,15 @@ const redirectBasedOnRole = async (uid) => {
         }}>
           <div style={{
             fontSize: "20px",
-            fontWeight: "bold"
+            fontWeight: "bold",
+            color: theme.text
           }}>
             高橋キッズソフトテニスクラブ
           </div>
 
           <div style={{
             fontSize: "13px",
-            color: "#aaa",
+            color: theme.subText,
             marginTop: "4px"
           }}>
             ［スケジュール確認アプリ］
@@ -120,7 +123,7 @@ const redirectBasedOnRole = async (uid) => {
         {/* サブ説明 */}
         <p style={{
           textAlign: "center",
-          color: "#aaa",
+          color: theme.subText,
           fontSize: "10px",
           marginBottom: "20px"
         }}>

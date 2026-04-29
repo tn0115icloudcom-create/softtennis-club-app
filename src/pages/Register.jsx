@@ -3,14 +3,15 @@ import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { theme } from "../styles/theme";
 
 const inputStyle = {
   width: "100%",
-  padding: "10px",
-  borderRadius: "8px",
-  border: "1px solid #333",
-  background: "#121212",
-  color: "#fff",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "1px solid " + theme.border,
+  background: "#ffffff",
+  color: theme.text,
   fontSize: "16px",
   boxSizing: "border-box"
 };
@@ -31,7 +32,7 @@ function Register() {
   // studentIdがない場合はエラー
   if (!urlStudentId) {
     return (
-      <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
+      <div style={{ padding: "20px", background: theme.background, color: theme.text, minHeight: "100vh" }}>
         <div style={{ maxWidth: "420px", margin: "0 auto", textAlign: "center" }}>
           <h1 style={{ color: "#f44336" }}>エラー</h1>
           <p>管理者から提供されたリンク経由でアクセスしてください。</p>
@@ -116,7 +117,7 @@ function Register() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#121212",
+      background: theme.background,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -125,10 +126,11 @@ function Register() {
       <div style={{
         width: "100%",
         maxWidth: "420px",
-        background: "#1e1e1e",
+        background: theme.card,
         padding: "24px",
         borderRadius: "16px",
-        border: "1px solid #333"
+        border: "1px solid " + theme.border,
+        boxShadow: "0 16px 32px rgba(15, 23, 42, 0.12)"
       }}>
 
         {/* アプリ名 */}
@@ -136,7 +138,7 @@ function Register() {
           <div style={{ fontSize: "18px", fontWeight: "bold" }}>
             高橋キッズソフトテニスクラブ
           </div>
-          <div style={{ fontSize: "13px", color: "#aaa", marginTop: "4px" }}>
+          <div style={{ fontSize: "13px", color: theme.subText, marginTop: "4px" }}>
             保護者アカウント登録
           </div>
         </div>
@@ -145,7 +147,8 @@ function Register() {
         <h1 style={{
           fontSize: "20px",
           textAlign: "center",
-          marginBottom: "16px"
+          marginBottom: "16px",
+          color: theme.text
         }}>
           新規登録
         </h1>
@@ -153,7 +156,7 @@ function Register() {
         {/* 説明 */}
         <p style={{
           textAlign: "center",
-          color: "#aaa",
+          color: theme.subText,
           fontSize: "14px",
           marginBottom: "20px"
         }}>
