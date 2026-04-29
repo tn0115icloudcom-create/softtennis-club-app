@@ -247,7 +247,7 @@ function Admin() {
           }}
         >
           <button
-            onClick={() => navigate("/news")}
+            onClick={() => navigate("/admin/notices")}
             style={{
               padding: "18px 14px",
               border: "none",

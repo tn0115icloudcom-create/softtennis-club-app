@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase";
 import Admin from "./pages/Admin";
+import AdminNotice from "./pages/AdminNotice";
 import AdminSchedule from "./pages/AdminSchedule";
 import Login from "./pages/Login";
+import News from "./pages/News";
 import Parent from "./pages/Parent";
 import Schedule from "./pages/Schedule";
 import Students from "./pages/Students";
@@ -104,6 +106,7 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/admin/notices" element={<AdminNotice />} />
         <Route path="/admin/schedule" element={<AdminSchedule />} />
 
         {/* ログイン画面 */}
@@ -129,7 +132,7 @@ function App() {
         <Route path="/parent/history/:studentId" element={<ParentHistory />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/mypage" element={<PlaceholderPage title="マイページ" />} />
-        <Route path="/news" element={<PlaceholderPage title="お知らせ" />} />
+        <Route path="/news" element={<News />} />
       </Routes>
     </BrowserRouter>
   );
