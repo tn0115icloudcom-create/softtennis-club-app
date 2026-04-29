@@ -3,11 +3,8 @@ import { auth, db } from "../firebase";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
-import HeaderMenu from "../components/HeaderMenu";
+import { theme } from "../styles/theme";
 
-//==============================
-// JST日付変換
-//==============================
 const getJSTDate = (date) => {
   const d = new Date(date);
   return new Date(d.getTime() + 9 * 60 * 60 * 1000)
@@ -15,32 +12,19 @@ const getJSTDate = (date) => {
     .slice(0, 10);
 };
 
-//==============================
-// 曜日
-//==============================
 const getWeekday = (date) => {
-  const days = ["日","月","火","水","木","金","土"];
+  const days = ["日", "月", "火", "水", "木", "金", "土"];
   return days[date.getDay()];
 };
 
-//==============================
-// カレンダー生成
-//==============================
-const generateCalendar = (year, month) => {
-  const days = [];
-  const total = new Date(year, month + 1, 0).getDate();
-  for (let i = 1; i <= total; i++) {
-    days.push(new Date(year, month, i));
-  }
-  return days;
+const sectionTitleStyle = {
+  margin: "0 0 12px",
+  fontSize: "16px",
+  fontWeight: "bold",
+  color: theme.text
 };
 
-const menuItemStyle = {
-  padding: "12px",
-  borderBottom: "1px solid #333",
-  cursor: "pointer",
-  color: "#fff"
-};
+const shadowStyle = "0 10px 24px rgba(15, 23, 42, 0.08)";
 
 function Parent() {
   const navigate = useNavigate();
@@ -49,16 +33,9 @@ function Parent() {
   const [students, setStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState(null);
-  const [viewMode, setViewMode] = useState("list");
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [remainings, setRemainings] = useState({});
   const [ticketsLoaded, setTicketsLoaded] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
-  //==============================
-  // ログインユーザー取得
-  //==============================
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -77,15 +54,14 @@ function Parent() {
         studentIds = [studentIds];
       }
 
-      // students取得
       const snapshot = await getDocs(collection(db, "students"));
 
       const list = snapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
+        .map((studentDoc) => ({
+          id: studentDoc.id,
+          ...studentDoc.data()
         }))
-        .filter(s => studentIds.includes(s.id));
+        .filter((student) => studentIds.includes(student.id));
 
       setStudents(list);
     });
@@ -93,30 +69,27 @@ function Parent() {
     return () => unsubscribe();
   }, []);
 
-  //==============================
-  // スケジュール取得
-  //==============================
   useEffect(() => {
     const fetchSchedules = async () => {
       const snapshot = await getDocs(collection(db, "schedules"));
-      setSchedules(snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
+      setSchedules(
+        snapshot.docs.map((scheduleDoc) => ({
+          id: scheduleDoc.id,
+          ...scheduleDoc.data()
+        }))
+      );
     };
+
     fetchSchedules();
   }, []);
 
-  //==============================
-  // 回数券残数取得
-  //==============================
   useEffect(() => {
     const fetchTicketRemainings = async () => {
       const snapshot = await getDocs(collection(db, "tickets"));
       const map = {};
 
-      snapshot.docs.forEach((doc) => {
-        const data = doc.data();
+      snapshot.docs.forEach((ticketDoc) => {
+        const data = ticketDoc.data();
         const studentId = data.student_id;
         if (!studentId) return;
 
@@ -134,15 +107,12 @@ function Parent() {
     fetchTicketRemainings();
   }, []);
 
-  //==============================
-  // 今日の練習
-  //==============================
   useEffect(() => {
     if (!schedules.length) return;
 
     const today = getJSTDate(new Date());
 
-    const todayItem = schedules.find(item => {
+    const todayItem = schedules.find((item) => {
       if (!item.date) return false;
       return getJSTDate(item.date.toDate()) === today;
     });
@@ -150,376 +120,175 @@ function Parent() {
     setTodaySchedule(todayItem || null);
   }, [schedules]);
 
-  //==============================
-  // 月変更
-  //==============================
-  const changeMonth = (diff) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(newDate.getMonth() + diff);
-    setCurrentDate(newDate);
-  };
-
-  //==============================
-  // ログアウト
-  //==============================
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/login");
   };
 
-  
+  const shortcuts = [
+    { icon: "📢", label: "お知らせ", path: "/news" },
+    { icon: "📅", label: "スケジュール", path: "/schedule" },
+    { icon: "👤", label: "マイページ", path: "/mypage" }
+  ];
+
   return (
-    <div style={{ padding: "20px", background: "#121212", minHeight: "100vh", color: "#fff" }}>
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "10px"
-      }}>
-        <h1 style={{ margin: 0 }}>保護者ページ</h1>
-
-        <HeaderMenu>
-          <div style={menuItemStyle}>
-            マイページ
-          </div>
-
-          <div style={{ ...menuItemStyle, color: "#f44336" }} onClick={handleLogout}>
-            ログアウト
-          </div>
-        </HeaderMenu>
-      </div>
-
-      {/* 保護者名表示 */}
-      <div style={{
-        background: "#1e1e1e",
-        padding: "14px 16px",
-        borderRadius: "12px",
-        marginBottom: "16px"
-      }}>
-        <div style={{
-          fontSize: "14px",
-          color: "#aaa"
-        }}>
-          保護者アカウント
-        </div>
-
-        <div style={{
-          fontSize: "18px",
-          fontWeight: "bold",
-          marginTop: "4px"
-        }}>
-          {(userData.name || userData.email || "保護者") + " さん"}
-        </div>
-      </div>
-
-      {/* タイトルとメニュー */}
-      {/* =========================
-        今日の練習
-      ========================= */}
-      <div style={{
-        marginTop: "20px",
+    <div
+      style={{
         padding: "20px",
-        borderRadius: "12px",
-        background: "#1e1e1e",
-        textAlign: "center"
-      }}>
-
-        <div style={{
-          fontSize: "30px",
-          fontWeight: "bold",
-          color: "#aaa",
-          marginBottom: "20px"
-        }}>
-          《本日の活動》
-        </div>
-
-        <div style={{ fontSize: "18px" }}>
-          {new Date().toLocaleDateString() + "（" + getWeekday(new Date()) + "）"}
-        </div>
-
-        <div style={{
-          fontSize: "28px",
-          fontWeight: "bold",
-          marginTop: "10px",
-          color: todaySchedule
-            ? (todaySchedule.status === "scheduled" ? "#00e676" : "#ff1744")
-            : "#888"
-        }}>
-          {todaySchedule
-            ? (todaySchedule.status === "scheduled" ? "実施" : "中止")
-            : "予定なし"}
-        </div>
-
-        {/* タイトル＋時間 */}
-        <div style={{
-          fontSize: "18px",
-          marginTop: "10px",
-          color: todaySchedule ? "#fff" : "#888",
-          fontWeight: "bold"
-        }}>
-          {todaySchedule
-            ? `${todaySchedule.title || "-"}（${todaySchedule.start_time || "-"}）`
-            : "本日の予定はありません"}
-        </div>
-
+        background: theme.background,
+        minHeight: "100vh",
+        color: theme.text,
+        boxSizing: "border-box"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+          gap: "12px"
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: "30px", fontWeight: "bold", color: theme.text }}>
+          ホーム
+        </h1>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "10px 14px",
+            borderRadius: "12px",
+            border: "1px solid " + theme.border,
+            background: theme.card,
+            color: theme.text,
+            fontSize: "14px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            boxShadow: shadowStyle
+          }}
+        >
+          ログアウト
+        </button>
       </div>
 
-      {/* =========================
-        生徒一覧
-      ========================= */}
-      <div style={{
-        marginTop: "20px",
-        marginBottom: "10px",
-        fontSize: "16px",
-        fontWeight: "bold"
-      }}>
-        対象生徒
-      </div>
-      <div style={{ marginBottom: "20px" }}>
-        {students.map(s => (
-          <div 
-            key={s.id} 
-            onClick={() => navigate(`/parent/history/${s.id}`)}
+      <section style={{ marginBottom: "24px" }}>
+        <h2 style={sectionTitleStyle}>今日の活動</h2>
+        <div
+          style={{
+            background: theme.card,
+            borderRadius: "16px",
+            padding: "20px",
+            boxShadow: shadowStyle
+          }}
+        >
+          <div style={{ fontSize: "18px", color: theme.subText }}>
+            {new Date().toLocaleDateString()}（{getWeekday(new Date())}）
+          </div>
+
+          <div
             style={{
-              marginTop: "15px",
-              padding: "15px",
-              background: "#1e1e1e",
-              border: "1px solid #333",
-              borderRadius: "10px",
-              textAlign: "center",
+              fontSize: "28px",
               fontWeight: "bold",
-              cursor: "pointer"
+              marginTop: "10px",
+              color: todaySchedule
+                ? todaySchedule.status === "scheduled"
+                  ? theme.success
+                  : theme.danger
+                : theme.subText
             }}
           >
-            {s.name}
-            <div style={{ marginTop: "8px", fontSize: "14px", color: "#ccc", fontWeight: "normal" }}>
-              回数券：{ticketsLoaded ? `残り ${remainings[s.id] ?? 0}枚` : "取得中"}
-            </div>
+            {todaySchedule ? (todaySchedule.status === "scheduled" ? "実施" : "中止") : "予定なし"}
           </div>
-        ))}
-      </div>
 
-      {/* =========================
-        スケジュール
-      ========================= */}
-      <h2 style={{ marginTop: "30px" }}>スケジュール</h2>
+          <div
+            style={{
+              fontSize: "18px",
+              marginTop: "10px",
+              color: todaySchedule ? theme.text : theme.subText,
+              fontWeight: "bold"
+            }}
+          >
+            {todaySchedule
+              ? `${todaySchedule.title || "-"}  ${todaySchedule.start_time || "-"}`
+              : "本日の活動予定はありません"}
+          </div>
+        </div>
+      </section>
 
-      {/* 切替 */}
-      <div style={{ display: "flex" }}>
-        <button onClick={() => setViewMode("list")} style={{
-          flex: 1,
-          padding: "10px",
-          background: viewMode === "list" ? "#ff6d00" : "#444",
-          color: "#fff",
-          border: "none"
-        }}>一覧</button>
-
-        <button onClick={() => setViewMode("calendar")} style={{
-          flex: 1,
-          padding: "10px",
-          background: viewMode === "calendar" ? "#ff6d00" : "#444",
-          color: "#fff",
-          border: "none"
-        }}>カレンダー</button>
-      </div>
-
-      {/* =========================
-        一覧
-      ========================= */}
-      {viewMode === "list" &&
-        schedules
-          .filter(item => {
-            if (!item.date) return false;
-            return getJSTDate(item.date.toDate()) >= getJSTDate(new Date());
-          })
-          .sort((a, b) => a.date.toDate() - b.date.toDate())
-          .slice(0, 10)
-          .map(item => (
-            <div key={item.id} style={{
-              padding: "12px",
-              margin: "10px 0",
-              background: item.status === "cancelled" ? "#8b0000" : "#2e7d32",
-              borderRadius: "10px"
-            }}>
-              {item.date.toDate().toLocaleDateString()}（{getWeekday(item.date.toDate())}）
-              <br />
-              {item.title}（{item.start_time}）
-              <br />
-              {item.status === "scheduled" ? "実施" : "中止"}
-            </div>
+      <section style={{ marginBottom: "24px" }}>
+        <h2 style={sectionTitleStyle}>生徒</h2>
+        <div style={{ display: "grid", gap: "16px" }}>
+          {students.map((student) => (
+            <button
+              key={student.id}
+              onClick={() => navigate(`/parent/history/${student.id}`)}
+              style={{
+                width: "100%",
+                padding: "20px",
+                border: "none",
+                borderRadius: "16px",
+                background: "linear-gradient(135deg, #1e88e5 0%, #42a5f5 55%, #64b5f6 100%)",
+                color: "#ffffff",
+                textAlign: "left",
+                cursor: "pointer",
+                boxShadow: "0 14px 28px rgba(30, 136, 229, 0.24)"
+              }}
+            >
+              <div style={{ fontSize: "14px", opacity: 0.86 }}>{student.kana || "ふりがな未設定"}</div>
+              <div style={{ fontSize: "20px", fontWeight: "bold", marginTop: "6px" }}>{student.name}</div>
+              <div style={{ fontSize: "16px", marginTop: "14px" }}>
+                {student.grade ? `${student.grade}年生` : "学年未設定"}
+              </div>
+              <div style={{ fontSize: "16px", marginTop: "8px" }}>
+                回数券残数: {ticketsLoaded ? `${remainings[student.id] ?? 0}回` : "読み込み中"}
+              </div>
+            </button>
           ))}
 
-      {/* =========================
-        カレンダー
-      ========================= */}
-      {viewMode === "calendar" && (() => {
-
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const startDay = new Date(year, month, 1).getDay();
-        const days = generateCalendar(year, month);
-
-        return (
-          <div>
-
-            {/* 月 */}
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <button onClick={() => changeMonth(-1)}>◀</button>
-              <div>{year}年{month + 1}月</div>
-              <button onClick={() => changeMonth(1)}>▶</button>
+          {students.length === 0 && (
+            <div
+              style={{
+                background: theme.card,
+                borderRadius: "16px",
+                padding: "20px",
+                boxShadow: shadowStyle,
+                color: theme.subText
+              }}
+            >
+              登録されている生徒がいません
             </div>
+          )}
+        </div>
+      </section>
 
-            {/* 曜日 */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7,1fr)",
-              marginTop: "10px"
-            }}>
-              {["日","月","火","水","木","金","土"].map(d => (
-                <div key={d} style={{ textAlign: "center", color: "#aaa" }}>{d}</div>
-              ))}
-            </div>
-
-            {/* 日付 */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7,1fr)",
-              gap: "6px"
-            }}>
-              {Array.from({ length: startDay }).map((_, i) => (
-                <div key={i}></div>
-              ))}
-
-              {days.map(date => {
-
-                const dateStr = getJSTDate(date);
-                const todayStr = getJSTDate(new Date());
-                const isToday = dateStr === todayStr;
-
-                const schedule = schedules.find(s =>
-                  s.date && getJSTDate(s.date.toDate()) === dateStr
-                );
-
-                return (
-                  <div
-                    key={date}
-                    onClick={() => {
-                      if (schedule) {
-                        setSelectedSchedule(schedule);
-                        setShowModal(true);
-                      }
-                    }}
-                    style={{
-                    padding: "10px",
-                    textAlign: "center",
-                    borderRadius: "8px",
-                    border: isToday ? "2px solid #ff00ff" : "none",
-                    background:
-                      schedule
-                        ? (schedule.status === "scheduled" ? "#69f0ae" : "#ff8a80")
-                        : "#222"
-                  }}>
-                    {date.getDate()}
-
-                    {/* モーダル */}
-                  </div>
-                );
-              })}
-            </div>
-
-            {showModal && selectedSchedule && (
-              <div
-                onClick={() => setShowModal(false)}
-                style={{
-                  position: "fixed",
-                  inset: 0,
-                  background: "rgba(0,0,0,0.6)",
-                  zIndex: 1000
-                }}
-              >
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    position: "fixed",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: "calc(100% - 24px)",
-                    maxWidth: "420px",
-                    background: "#1e1e1e",
-                    borderRadius: "16px",
-                    padding: "20px 16px",
-                    boxSizing: "border-box"
-                  }}
-                >
-
-                  {/* タイトル */}
-                  <div style={{
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    marginBottom: "10px",
-                    color: "#fff"
-                  }}>
-                    スケジュール詳細
-                  </div>
-
-                  {/* 日付 */}
-                  <div style={{ textAlign: "center", marginBottom: "8px", color: "#fff" }}>
-                    {selectedSchedule.date.toDate().toLocaleDateString()}（{getWeekday(selectedSchedule.date.toDate())}）
-                  </div>
-
-                  {/* タイトル */}
-                  <div style={{
-                    textAlign: "center",
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    marginBottom: "6px",
-                    color: "#fff"
-                  }}>
-                    {selectedSchedule.title}
-                  </div>
-
-                  {/* 時間 */}
-                  <div style={{ textAlign: "center", color: "#ccc" }}>
-                    {selectedSchedule.start_time}
-                  </div>
-
-                  {/* 状態 */}
-                  <div style={{
-                    textAlign: "center",
-                    marginTop: "10px",
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    color: selectedSchedule.status === "scheduled" ? "#00e676" : "#ff1744"
-                  }}>
-                    {selectedSchedule.status === "scheduled" ? "実施" : "中止"}
-                  </div>
-
-                  {/* 閉じる */}
-                  <button
-                    onClick={() => setShowModal(false)}
-                    style={{
-                      marginTop: "14px",
-                      width: "100%",
-                      padding: "10px",
-                      background: "#444",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px"
-                    }}
-                  >
-                    閉じる
-                  </button>
-
-                </div>
-              </div>
-            )}
-
-          </div>
-        );
-      })()}
-
+      <section>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: "12px"
+          }}
+        >
+          {shortcuts.map((item) => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              style={{
+                padding: "18px 12px",
+                borderRadius: "14px",
+                border: "none",
+                background: theme.card,
+                color: theme.text,
+                boxShadow: shadowStyle,
+                cursor: "pointer"
+              }}
+            >
+              <div style={{ fontSize: "24px", marginBottom: "10px" }}>{item.icon}</div>
+              <div style={{ fontSize: "14px", fontWeight: "bold" }}>{item.label}</div>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

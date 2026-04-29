@@ -10,7 +10,8 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { theme } from "../styles/theme";
 
 const getJSTDate = (date) => {
   const d = new Date(date);
@@ -40,7 +41,37 @@ const dateInputStyle = {
   maxWidth: "calc(100% - 24px)"
 };
 
+const getStudentCardStyle = (gender) => {
+  if (gender === "male") {
+    return {
+      background: "linear-gradient(135deg, #1e88e5 0%, #42a5f5 55%, #64b5f6 100%)",
+      color: "#ffffff",
+      border: "none",
+      boxShadow: "0 14px 28px rgba(30, 136, 229, 0.24)"
+    };
+  }
+
+  if (gender === "female") {
+    return {
+      background: "linear-gradient(135deg, #ec407a 0%, #f06292 55%, #f48fb1 100%)",
+      color: "#ffffff",
+      border: "none",
+      boxShadow: "0 14px 28px rgba(236, 64, 122, 0.22)"
+    };
+  }
+
+  return {
+    background: theme.card,
+    color: theme.text,
+    border: "1px solid " + theme.border,
+    boxShadow: "none"
+  };
+};
+
 function Students() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [students, setStudents] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState(null);
@@ -50,7 +81,13 @@ function Students() {
   const [newGrade, setNewGrade] = useState("");
   const [joinDate, setJoinDate] = useState("");
   const [kana, setKana] = useState("");
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.openAddStudent) {
+      setIsModalOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -86,8 +123,7 @@ function Students() {
     const today = getJSTDate(new Date());
     const todayItem = schedules.find((item) => {
       if (!item.date) return false;
-      const itemDate = getJSTDate(item.date.toDate());
-      return itemDate === today;
+      return getJSTDate(item.date.toDate()) === today;
     });
 
     setTodaySchedule(todayItem || null);
@@ -143,7 +179,7 @@ function Students() {
 
     const remaining = remainings[studentId] || 0;
     if (remaining <= 0) {
-      alert("残回数がありません");
+      alert("回数券残数がありません");
       return;
     }
 
@@ -220,18 +256,18 @@ function Students() {
   };
 
   return (
-    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
+    <div style={{ padding: "20px", background: theme.background, color: theme.text, minHeight: "100vh" }}>
       <div
         style={{
-          background: "#1e1e1e",
+          background: theme.card,
           padding: "12px 16px",
-          borderBottom: "1px solid #333"
+          borderBottom: "1px solid " + theme.border
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1
             style={{
-              color: "#fff",
+              color: theme.text,
               fontSize: "clamp(16px, 5vw, 25px)",
               margin: 0
             }}
@@ -261,41 +297,28 @@ function Students() {
           onClick={() => navigate(`/students/${student.id}`)}
           style={{
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
             padding: "18px",
             margin: "12px 0",
-            background: "#1e1e1e",
-            border: "1px solid #333",
             borderRadius: "12px",
-            cursor: "pointer"
+            cursor: "pointer",
+            ...getStudentCardStyle(student.gender)
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "12px", color: "#bbb" }}>{student.kana || ""}</div>
-              <div style={{ fontSize: "18px", fontWeight: "bold" }}>
-                {student.grade ? `${student.grade}年生 ` : "学年未設定 "}
-                <span
-                  style={{
-                    color:
-                      student.gender === "male"
-                        ? "#4fc3f7"
-                        : student.gender === "female"
-                          ? "#f06292"
-                          : "#fff"
-                  }}
-                >
-                  {student.name}
-                </span>
-              </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "12px", opacity: 0.86 }}>{student.kana || "ふりがな未設定"}</div>
+            <div style={{ fontSize: "20px", fontWeight: "bold", marginTop: "6px" }}>{student.name}</div>
+            <div style={{ fontSize: "16px", marginTop: "14px" }}>
+              {student.grade ? `${student.grade}年生` : "学年未設定"}
             </div>
+            <div style={{ fontSize: "16px", marginTop: "8px" }}>
+              回数券残数: {remainings[student.id] ?? 0}回
+            </div>
+          </div>
 
+          <div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -315,16 +338,6 @@ function Students() {
               参加
             </button>
           </div>
-
-          <div
-            style={{
-              marginTop: "10px",
-              fontSize: "14px",
-              color: "#ccc"
-            }}
-          >
-            残回数: 残り {remainings[student.id] ?? 0}回
-          </div>
         </div>
       ))}
 
@@ -337,7 +350,7 @@ function Students() {
           width: "60px",
           height: "60px",
           borderRadius: "30px",
-          background: "#4CAF50",
+          background: theme.success,
           color: "#fff",
           border: "none",
           fontSize: "32px",
@@ -370,7 +383,7 @@ function Students() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#1e1e1e",
+              background: theme.card,
               width: "92%",
               maxWidth: "420px",
               margin: "0 auto",
@@ -382,12 +395,12 @@ function Students() {
             }}
           >
             <div style={{ marginBottom: "20px" }}>
-              <h2 style={{ margin: 0, color: "#fff" }}>新規生徒を追加</h2>
+              <h2 style={{ margin: 0, color: theme.text }}>新規生徒を追加</h2>
             </div>
 
             <form onSubmit={handleAddStudent} style={{ padding: "0 12px", boxSizing: "border-box" }}>
               <div style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>名前 *</label>
+                <label style={{ display: "block", color: theme.subText, marginBottom: "6px" }}>名前 *</label>
                 <input
                   type="text"
                   value={newStudent.name}
@@ -398,7 +411,7 @@ function Students() {
               </div>
 
               <div style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>ふりがな</label>
+                <label style={{ display: "block", color: theme.subText, marginBottom: "6px" }}>ふりがな</label>
                 <input
                   type="text"
                   value={kana}
@@ -409,33 +422,19 @@ function Students() {
               </div>
 
               <div style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>性別</label>
-                <div style={{ display: "flex", gap: "12px" }}>
-                  <label style={{ color: "#4fc3f7", cursor: "pointer" }}>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="male"
-                      checked={newStudent.gender === "male"}
-                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value })}
-                    />{" "}
-                    男性
-                  </label>
-                  <label style={{ color: "#f06292", cursor: "pointer" }}>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="female"
-                      checked={newStudent.gender === "female"}
-                      onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value })}
-                    />{" "}
-                    女性
-                  </label>
-                </div>
+                <label style={{ display: "block", color: theme.subText, marginBottom: "6px" }}>性別</label>
+                <select
+                  value={newStudent.gender}
+                  onChange={(e) => setNewStudent({ ...newStudent, gender: e.target.value })}
+                  style={inputStyle}
+                >
+                  <option value="male">男性</option>
+                  <option value="female">女性</option>
+                </select>
               </div>
 
               <div style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>学年</label>
+                <label style={{ display: "block", color: theme.subText, marginBottom: "6px" }}>学年</label>
                 <select value={newGrade} onChange={(e) => setNewGrade(e.target.value)} style={inputStyle}>
                   <option value="">学年を選択</option>
                   <option value="3">3年生</option>
@@ -446,7 +445,7 @@ function Students() {
               </div>
 
               <div style={{ marginBottom: "16px" }}>
-                <label style={{ display: "block", color: "#ccc", marginBottom: "6px" }}>入会日</label>
+                <label style={{ display: "block", color: theme.subText, marginBottom: "6px" }}>入会日</label>
                 <input
                   type="date"
                   value={joinDate}

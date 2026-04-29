@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { db } from "../firebase";
 import { collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
+import { db } from "../firebase";
+import { theme } from "../styles/theme";
 
 const getStatusLabel = (status) => {
   if (status === "present") return "参加";
@@ -32,6 +33,7 @@ function StudentDetail() {
 
   const [student, setStudent] = useState(null);
   const [attendance, setAttendance] = useState([]);
+  const [remainingCount, setRemainingCount] = useState(0);
   const [hasParent, setHasParent] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
@@ -59,6 +61,24 @@ function StudentDetail() {
     };
 
     fetchStudent();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchRemainingCount = async () => {
+      const snapshot = await getDocs(collection(db, "tickets"));
+      let remaining = 0;
+
+      snapshot.docs.forEach((ticketDoc) => {
+        const data = ticketDoc.data();
+        if (String(data.student_id) !== String(id)) return;
+
+        remaining += Number(data.total ?? 0) - Number(data.used ?? 0);
+      });
+
+      setRemainingCount(remaining);
+    };
+
+    fetchRemainingCount();
   }, [id]);
 
   useEffect(() => {
@@ -141,8 +161,8 @@ function StudentDetail() {
     return (
       <div
         style={{
-          background: "#121212",
-          color: "#fff",
+          background: theme.background,
+          color: theme.text,
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",
@@ -155,7 +175,7 @@ function StudentDetail() {
   }
 
   return (
-    <div style={{ padding: "20px", background: "#121212", color: "#fff", minHeight: "100vh" }}>
+    <div style={{ padding: "20px", background: theme.background, color: theme.text, minHeight: "100vh" }}>
       <div
         style={{
           position: "relative",
@@ -181,7 +201,7 @@ function StudentDetail() {
 
         <h1
           style={{
-            color: "#fff",
+            color: theme.text,
             fontSize: "22px",
             margin: 0
           }}
@@ -210,70 +230,107 @@ function StudentDetail() {
 
       <div
         style={{
-          background: "#1e1e1e",
+          background: theme.card,
           padding: "16px",
           borderRadius: "12px",
           marginBottom: "20px"
         }}
       >
-        <div style={{ fontSize: "14px", color: "#bbb" }}>{student.kana || "ふりがな未設定"}</div>
-
-        <div style={{ fontSize: "20px", fontWeight: "bold", color: "#fff", marginTop: "4px" }}>
-          {student.grade ? `${student.grade}年生 ` : "学年未設定 "}
+        <div style={{ fontSize: "14px", color: theme.subText }}>{student.kana || "ふりがな未設定"}</div>
+        <div style={{ fontSize: "20px", fontWeight: "bold", color: theme.text, marginTop: "6px" }}>
           {student.name}
         </div>
+        <div style={{ marginTop: "14px", color: theme.text, fontSize: "16px" }}>
+          {student.grade ? `${student.grade}年生` : "学年未設定"}
+        </div>
+        <div
+          style={{
+            marginTop: "8px",
+            fontSize: "16px",
+            color:
+              student.gender === "male"
+                ? "#1e88e5"
+                : student.gender === "female"
+                  ? "#ec407a"
+                  : theme.subText,
+            fontWeight: "bold"
+          }}
+        >
+          {student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}
+        </div>
+        <div style={{ marginTop: "8px", color: theme.text, fontSize: "16px" }}>
+          回数券残数: {remainingCount}回
+        </div>
+      </div>
 
-        <div style={{ marginTop: "12px", color: "#ccc", fontSize: "14px" }}>
-          <div>性別: {student.gender === "male" ? "男性" : student.gender === "female" ? "女性" : "-"}</div>
-          {student.note && <div style={{ marginTop: "4px" }}>備考: {student.note}</div>}
+      <div
+        style={{
+          background: theme.card,
+          padding: "16px",
+          borderRadius: "12px",
+          marginBottom: "20px"
+        }}
+      >
+        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "8px", color: theme.text }}>
+          備考
+        </div>
+        <div
+          style={{
+            fontSize: "14px",
+            lineHeight: 1.6,
+            color: student.note ? theme.text : theme.subText,
+            whiteSpace: "pre-wrap"
+          }}
+        >
+          {student.note || "未設定"}
         </div>
       </div>
 
       <div
         style={{
           marginTop: "20px",
-          background: "#1e1e1e",
+          background: theme.card,
           padding: "16px",
           borderRadius: "12px"
         }}
       >
-        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "12px" }}>保護者セクション</div>
+        <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "12px" }}>保護者連携ステータス</div>
 
         <div
           style={{
             padding: "10px",
             borderRadius: "8px",
-            background: hasParent ? "#1b5e20" : "#5c0000",
+            background: hasParent ? theme.success : theme.danger,
             color: "#fff",
             fontWeight: "bold",
             textAlign: "center",
             marginBottom: "12px"
           }}
         >
-          {hasParent ? "登録済み" : "未登録"}
+          {hasParent ? "連携済み" : "未連携"}
         </div>
 
         <div
           style={{
             fontSize: "13px",
-            color: "#ccc",
+            color: theme.subText,
             marginBottom: "12px",
             lineHeight: 1.6
           }}
         >
-          リンクを保護者の方に共有すると、この生徒に紐づく登録ページを開けます。
+          リンクを保護者へ共有すると、この生徒に紐づく保護者ページを開設できます。
         </div>
 
         <button
           onClick={() => {
             const url = `${window.location.origin}/register?studentId=${id}`;
             navigator.clipboard.writeText(url);
-            alert("登録リンクをコピーしました");
+            alert("保護者リンクをコピーしました");
           }}
           style={{
             width: "100%",
             padding: "14px",
-            background: "#2196f3",
+            background: theme.primary,
             color: "#fff",
             border: "none",
             borderRadius: "10px",
@@ -282,14 +339,14 @@ function StudentDetail() {
             cursor: "pointer"
           }}
         >
-          登録リンクをコピー
+          保護者リンクをコピー
         </button>
       </div>
 
       <div
         style={{
           marginTop: "20px",
-          background: "#1e1e1e",
+          background: theme.card,
           padding: "16px",
           borderRadius: "12px"
         }}
@@ -297,7 +354,7 @@ function StudentDetail() {
         <h2
           style={{
             marginBottom: "10px",
-            color: "#fff",
+            color: theme.text,
             fontSize: "22px"
           }}
         >
@@ -311,7 +368,7 @@ function StudentDetail() {
             <div
               key={item.id}
               style={{
-                background: "#2a2a2a",
+                background: theme.background,
                 padding: "12px",
                 borderRadius: "10px",
                 marginBottom: "8px"
@@ -341,18 +398,18 @@ function StudentDetail() {
               width: "92%",
               maxWidth: "420px",
               margin: "0 auto",
-              background: "#1e1e1e",
-              borderRadius: "16px 16px 0 0",
+              background: theme.card,
+              borderRadius: "20px 20px 0 0",
               padding: "24px 16px",
               boxSizing: "border-box",
               maxHeight: "80vh",
               overflowY: "auto"
             }}
           >
-            <h2 style={{ textAlign: "center", color: "#fff", marginBottom: "20px" }}>生徒を編集</h2>
+            <h2 style={{ textAlign: "center", color: theme.text, marginBottom: "20px" }}>生徒を編集</h2>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>名前</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>名前</label>
               <input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
@@ -362,7 +419,7 @@ function StudentDetail() {
             </div>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>ふりがな</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>ふりがな</label>
               <input
                 value={editKana}
                 onChange={(e) => setEditKana(e.target.value)}
@@ -372,7 +429,7 @@ function StudentDetail() {
             </div>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>学年</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>学年</label>
               <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} style={inputStyle}>
                 <option value="">学年</option>
                 <option value="3">3年生</option>
@@ -383,7 +440,7 @@ function StudentDetail() {
             </div>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>入会日</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>入会日</label>
               <input
                 type="date"
                 value={editJoinDate}
@@ -393,7 +450,7 @@ function StudentDetail() {
             </div>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>性別</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>性別</label>
               <select value={editGender} onChange={(e) => setEditGender(e.target.value)} style={inputStyle}>
                 <option value="">性別</option>
                 <option value="male">男性</option>
@@ -402,7 +459,7 @@ function StudentDetail() {
             </div>
 
             <div style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", color: "#aaa", marginBottom: "4px", fontSize: "12px" }}>備考</label>
+              <label style={{ display: "block", color: theme.subText, marginBottom: "4px", fontSize: "12px" }}>備考</label>
               <textarea
                 value={editNote}
                 onChange={(e) => setEditNote(e.target.value)}
@@ -427,7 +484,7 @@ function StudentDetail() {
                 style={{
                   flex: 1,
                   padding: "14px",
-                  background: "#4caf50",
+                  background: theme.success,
                   color: "#fff",
                   border: "none",
                   borderRadius: "10px",
@@ -443,7 +500,7 @@ function StudentDetail() {
                 style={{
                   flex: 1,
                   padding: "14px",
-                  background: "#555",
+                  background: theme.subText,
                   color: "#fff",
                   border: "none",
                   borderRadius: "10px",
